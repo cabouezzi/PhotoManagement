@@ -10,7 +10,8 @@ ELASTIC_PASSWORD = "elastic"
 client = Elasticsearch(
     "https://localhost:9200",
     ca_certs=r"ElasticSearchDatabase\http_ca.crt",
-    basic_auth=("elastic", ELASTIC_PASSWORD)
+    basic_auth=("elastic", ELASTIC_PASSWORD),
+    verify_certs=False
 )
 
 # Successful response!
