@@ -18,6 +18,8 @@ class TestChat(unittest.TestCase):
         scores = []
         for _ in range(n):
             chat = photomanagement.chat.Chat()
+            # uncomment/change model if your pc can't handle llama3.2
+            # chat.model = "llava-llama3"
             description = chat.invoke(prompt="Describe this photo", images=[data])[
                 "content"
             ]
@@ -32,6 +34,8 @@ class TestChat(unittest.TestCase):
 
     def test_history(self):
         chat = photomanagement.chat.Chat()
+        # uncomment/change model if your pc can't handle llama3.2
+        # chat.model = "llava-llama3"
         chat.invoke("My name is Jamaica")
         response = chat.invoke("What is my name?")
         self.assertTrue("Jamaica" in response["content"])
