@@ -167,4 +167,4 @@ ElasticSearch/ca.crt
 !ElasticSeachDatabase/.env
 
 # Mac
-.DS_store
+*.DS_store
