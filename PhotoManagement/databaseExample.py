@@ -18,6 +18,7 @@ client = Elasticsearch(
 #   api_key="U1JSZ0lKTUJTWWk4UHY0anJ4T2s6bjZJbE5sUTRRQ3VSZ0FvVWRmc1lpZw=="
 # )
 # Successful response!
+print(client.info())
 print(json.dumps(client.info().body, indent=4))
 entry = {
     "image-title": "boxer-dog.jpg",
