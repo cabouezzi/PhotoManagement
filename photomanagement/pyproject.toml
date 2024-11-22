@@ -15,6 +15,9 @@ readme = "README.md"
 python = "^3.9"
 
 
+pyttsx3 = "^2.6"
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
