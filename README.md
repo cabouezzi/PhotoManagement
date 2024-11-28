@@ -1,4 +1,4 @@
-
+# Photo Management
 
 ## Database Documentation
 For our database we wanted a simple and performent database that supports vector search.
