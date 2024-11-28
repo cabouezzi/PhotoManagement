@@ -165,5 +165,8 @@ cython_debug/
 # Database specific
 database/
 
+# Testing
+test-images/
+
 # Mac
 *.DS_store
