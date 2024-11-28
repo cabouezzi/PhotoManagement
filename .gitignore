@@ -163,12 +163,7 @@ cython_debug/
 
 
 # Database specific
-<<<<<<< HEAD
 database/
-=======
-ElasticSearch/ca.crt
-!ElasticSeachDatabase/.env
 
 # Mac
 *.DS_store
->>>>>>> b0a15e44d66f7ec29519e27088b685e535e405e1
