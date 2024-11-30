@@ -8,8 +8,9 @@ ELASTIC_PASSWORD = "elastic"
 # Create the client instance
 client = Elasticsearch(
     "https://localhost:9200",
-    ca_certs=r"../ElasticSearchDatabase/ca.crt",
+    ca_certs=r"./ElasticSearchDatabase/ca.crt",
     basic_auth=("elastic", ELASTIC_PASSWORD),
+    verify_certs=False
 )
 
 # client = Elasticsearch(
@@ -36,5 +37,5 @@ print(resp_index['result'])
 
 # Retrieve our entry from the elasticsearch database
 print("Retrieving...")
-resp_get = client.get(index="photo-management", id=image_id)["_source"]
+resp_get = client.get(index="photo-management", id="boxer-dog.jpg-2024-11-22 15:53:48.687450")["_source"]
 print(json.dumps(resp_get, indent=4))
