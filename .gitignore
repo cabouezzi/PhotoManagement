@@ -164,8 +164,10 @@ cython_debug/
 
 
 # Database specific
-ElasticSearch/ca.crt
-!ElasticSeachDatabase/.env
+database/
+
+# Testing
+test-images/
 
 # Mac
 *.DS_store

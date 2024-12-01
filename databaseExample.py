@@ -39,3 +39,4 @@ print(resp_index['result'])
 print("Retrieving...")
 resp_get = client.get(index="photo-management", id="boxer-dog.jpg-2024-11-22 15:53:48.687450")["_source"]
 print(json.dumps(resp_get, indent=4))
+
