@@ -9,7 +9,9 @@ class TestChat(unittest.TestCase):
         from .util import semscore
 
         path = (
-            pathlib.Path(__file__).parent.parent / "images" / pathlib.Path("image.jpg")
+            pathlib.Path(__file__).parent.parent
+            / "test_data"
+            / pathlib.Path("painting-mexico.jpg")
         )
         data = photomanagement.chat.convert_image_to_bytes(path)
 

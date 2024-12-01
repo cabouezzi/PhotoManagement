@@ -43,7 +43,7 @@ class Database(chromadb.Collection):
 
         if isinstance(path, str):
             path = pathlib.Path(path)
-        path = path or pathlib.Path("./photomanagement")
+        path = path or pathlib.Path("./database")
 
         self.image_directory_path = path / "images"
         self.client = chromadb.PersistentClient(
