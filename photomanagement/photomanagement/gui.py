@@ -1,5 +1,12 @@
 import dearpygui.dearpygui as dpg
 import math
+from edit import ImageEnhancer, load_im_array
+import numpy as np
+
+# Class Init
+# ----------------------------------------------------------------------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Viewport
@@ -18,16 +25,21 @@ def choose_file_callback(_, app_data):
     print(app_data)
     path = app_data["file_path_name"]
     load_img(path)
+    set_enhance_callbacks(path)
 
 
 def load_img(path):
     try:
         width, height, channels, data = dpg.load_image(path)
+        # print(np.array(data)[:5])
+        np_data = load_im_array(path)
+        # print(np_data[:5])
         with dpg.texture_registry(show=True):
-            dpg.add_static_texture(
+            dpg.add_raw_texture(
                 width=width,
                 height=height,
-                default_value=data,
+                default_value=np_data,
+                format=dpg.mvFormat_Float_rgba,
                 tag="texture_tag",
             )
         dpg.add_image("texture_tag", parent="img_window")
@@ -62,11 +74,82 @@ def choose_file(callback, cancel):
     return idx
 
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# Set file callback
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+def set_enhance_callbacks(path):
+    img_enhancer = ImageEnhancer(path)
+
+    def slider_callback(sender, app_data):
+        try:
+            new_img = None
+            match sender:
+                case "brightness":
+                    new_img = img_enhancer.brighten(app_data)
+                case "sharpness":
+                    new_img = img_enhancer.sharpen(app_data)
+                case "contrast":
+                    new_img = img_enhancer.contrast(app_data)
+                case "color":
+                    new_img = img_enhancer.colorize(app_data)
+                case _:
+                    raise TypeError
+            new_arr = np.array(new_img.getdata(), dtype=np.float32) / 255.0
+            print(app_data)
+            print(new_arr[:5])
+            dpg.configure_item(
+                "texture_tag",
+                default_value=new_arr,
+                # default_value=new_img,
+            )
+        except ValueError:
+            print(f"wrong type of slider callback {sender}")
+
+    dpg.set_item_callback("brightness", callback=slider_callback)
+    dpg.set_item_callback("sharpness", callback=slider_callback)
+    dpg.set_item_callback("contrast", callback=slider_callback)
+    dpg.set_item_callback("color", callback=slider_callback)
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Widget
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+def create_enhancer_group():
+    dpg.add_text(default_value="Enhancer")
+    dpg.add_slider_double(
+        label="Brightness",
+        default_value=0.3,
+        tag="brightness",
+        min_value=0,
+        max_value=1,
+    )
+    dpg.add_slider_double(
+        label="Sharpness",
+        default_value=0.3,
+        tag="sharpness",
+        min_value=0,
+        max_value=1,
+    )
+    dpg.add_slider_double(
+        label="Contrast",
+        clamped=True,
+        min_value=0.0,
+        max_value=1.0,
+        default_value=0.3,
+        tag="contrast",
+    )
+    dpg.add_slider_double(
+        label="Color",
+        clamped=True,
+        min_value=0.0,
+        max_value=1.0,
+        default_value=0.3,
+        tag="color",
+    )
+
+
 def create_widget_group():
     with dpg.child_window(
         pos=(dpg.get_viewport_width() - 300, 30),
@@ -74,22 +157,7 @@ def create_widget_group():
         parent="widget_window_group",
     ):
         with dpg.group(label="Enhancer"):
-            dpg.add_slider_double(label="Brightness", default_value=30)
-            dpg.add_slider_double(label="Sharpness", default_value=30)
-            dpg.add_slider_double(
-                label="Contrast",
-                clamped=True,
-                min_value=0.0,
-                max_value=1.0,
-                default_value=0.3,
-            )
-            dpg.add_slider_double(
-                label="Color",
-                clamped=True,
-                min_value=0.0,
-                max_value=1.0,
-                default_value=0.3,
-            )
+            create_enhancer_group()
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
