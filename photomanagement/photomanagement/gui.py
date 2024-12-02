@@ -1,4 +1,15 @@
 import dearpygui.dearpygui as dpg
+import math
+
+
+# Viewport
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+def viewport_resize(sender, app_data):
+    dpg.delete_item("widget_window")
+    create_widget_group()
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # choose file
@@ -6,9 +17,22 @@ import dearpygui.dearpygui as dpg
 def choose_file_callback(_, app_data):
     print(app_data)
     path = app_data["file_path_name"]
-    print(path)
-    # dpg.set_value("file_text", value=path)
     load_img(path)
+
+
+def load_img(path):
+    try:
+        width, height, channels, data = dpg.load_image(path)
+        with dpg.texture_registry(show=True):
+            dpg.add_static_texture(
+                width=width,
+                height=height,
+                default_value=data,
+                tag="texture_tag",
+            )
+        dpg.add_image("texture_tag", parent="img_window")
+    except ValueError:
+        print("cannot load file. path does not exist")
 
 
 def choose_file_cancel(sender, app_data):
@@ -38,44 +62,34 @@ def choose_file(callback, cancel):
     return idx
 
 
-def load_img(path):
-    try:
-        width, height, channels, data = dpg.load_image(path)
-        with dpg.texture_registry(show=True):
-            dpg.add_static_texture(
-                width=width,
-                height=height,
-                default_value=data,
-                tag="texture_tag",
-            )
-        dpg.add_image("texture_tag", parent="img_window")
-    except ValueError:
-        print("cannot load file. path does not exist")
-
-
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Widget
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 def create_widget_group():
-    with dpg.group(horizontal=True):
-        with dpg.child_window(pos=(600, 30)):
-            with dpg.group(label="Enhancer"):
-                dpg.add_slider_double(label="Brightness", default_value=30)
-                dpg.add_slider_double(label="Sharpness", default_value=30)
-                dpg.add_slider_double(
-                    label="Contrast",
-                    clamped=True,
-                    min_value=0.0,
-                    max_value=1.0,
-                )
-                dpg.add_slider_double(
-                    label="Contrast",
-                    clamped=True,
-                    min_value=0.0,
-                    max_value=1.0,
-                )
+    with dpg.child_window(
+        pos=(dpg.get_viewport_width() - 300, 30),
+        tag="widget_window",
+        parent="widget_window_group",
+    ):
+        with dpg.group(label="Enhancer"):
+            dpg.add_slider_double(label="Brightness", default_value=30)
+            dpg.add_slider_double(label="Sharpness", default_value=30)
+            dpg.add_slider_double(
+                label="Contrast",
+                clamped=True,
+                min_value=0.0,
+                max_value=1.0,
+                default_value=0.3,
+            )
+            dpg.add_slider_double(
+                label="Color",
+                clamped=True,
+                min_value=0.0,
+                max_value=1.0,
+                default_value=0.3,
+            )
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,22 +97,24 @@ def create_widget_group():
 
 def main():
     dpg.create_context()
+    dpg.create_viewport(title="Custom Title", resizable=True)
+    dpg.set_viewport_resize_callback(callback=viewport_resize)
     d_id = choose_file(choose_file_callback, choose_file_cancel)
     with dpg.window(label="Photo Management", tag="photomanagement"):
         with dpg.menu_bar():
             dpg.add_button(
                 label="add file", callback=lambda: dpg.show_item(d_id)
             )
-            # dpg.add_text(
-            #     tag="file_text",
-            #     default_value="C:\\Users\\lemin\\PhotoManagement\\photomanagement\\tests\\photos\\international.jpg",
-            # )
-        with dpg.group(horizontal=True):
-            with dpg.child_window(pos=(10, 30), tag="img_window"):
+        # Image Window
+        with dpg.group(horizontal=True, tag="widget_window_tag"):
+            with dpg.child_window(
+                pos=(10, 30), tag="img_window", horizontal_scrollbar=True
+            ):
                 dpg.add_text("Some text")
-        create_widget_group()
+        # Widget window
+        with dpg.group(horizontal=True, tag="widget_window_group"):
+            create_widget_group()
 
-    dpg.create_viewport(title="Custom Title", width=900, height=600)
     dpg.setup_dearpygui()
     dpg.set_primary_window("photomanagement", True)
     dpg.show_viewport()
