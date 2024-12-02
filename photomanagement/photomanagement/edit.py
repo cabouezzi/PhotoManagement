@@ -33,7 +33,7 @@ def load_im_array(path):
 
 class ImageEdit:
     def __init__(self, path) -> None:
-        self.im = Image.open(path)
+        self.im = Image.open(path).convert("RGBA")
         self.size = self.im.size
 
     def crop(self, coords):
@@ -67,32 +67,41 @@ class ImageEnhancer:
     def __init__(self, path) -> None:
         self.im = Image.open(path).convert("RGBA")
 
-    def brighten(self, factor):
-        enhancer = ImageEnhance.Brightness(self.im)
-        return enhancer.enhance(factor)
-
-    def sharpen(self, factor):
-        enhancer = ImageEnhance.Sharpness(self.im)
-        return enhancer.enhance(factor)
-
-    def colorize(self, factor):
+    def enhance_fn(self, factor, enhancer_type):
         try:
-            if factor > 1:
+            if enhancer_type not in enhancers:
                 raise ValueError
-            enhancer = ImageEnhance.Color(self.im)
+            enhancer = enhancers[enhancer_type](self.im)
             return enhancer.enhance(factor)
         except ValueError:
-            print("invalid value")
-            return
+            print("wrong type enhancer")
 
-    def contrast(self, factor):
-        try:
-            if factor > 1:
-                raise ValueError
-            enhancer = ImageEnhance.Contrast(self.im)
-            return enhancer.enhance(factor)
-        except ValueError:
-            print("invalid value")
+            # def brighten(self, factor):
+            #     enhancer = ImageEnhance.Brightness(self.im)
+            #     return enhancer.enhance(factor)
+
+            # def sharpen(self, factor):
+            #     enhancer = ImageEnhance.Sharpness(self.im)
+            #     return enhancer.enhance(factor)
+
+            # def colorize(self, factor):
+            #     try:
+            #         if factor > 1:
+            #             raise ValueError
+            #         enhancer = ImageEnhance.Color(self.im)
+            #         return enhancer.enhance(factor)
+            #     except ValueError:
+            #         print("invalid value")
+            #         return
+
+            # def contrast(self, factor):
+            #     try:
+            #         if factor > 1:
+            #             raise ValueError
+            #         enhancer = ImageEnhance.Contrast(self.im)
+            #         return enhancer.enhance(factor)
+            #     except ValueError:
+            #         print("invalid value")
             return
 
 
