@@ -1,2 +1,3 @@
 from .database import Photo, Database
-from . import chat
+from . import Chat
+from . import Speech
