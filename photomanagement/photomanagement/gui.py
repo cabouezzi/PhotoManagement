@@ -72,7 +72,7 @@ def set_enhance_callbacks(path):
 
     def slider_callback(sender, app_data):
         new_img = img_enhancer.enhance_fn(app_data, sender)
-        new_arr = np.array(new_img.getdata(), dtype=np.float32) / 255.0
+        new_arr = np.array(new_img.tobytes()) / 255.0
         dpg.configure_item(
             "texture_tag",
             default_value=new_arr,
@@ -91,7 +91,7 @@ def set_transform_callbacks(path):
             new_img = img_transformer.rotate(app_data)
         elif sender in ("lr", "tb"):
             new_img = img_transformer.flip(sender)
-        new_arr = np.array(new_img.getdata(), dtype=np.float32) / 255.0
+        new_arr = np.array(new_img.tobytes()) / 255.0
         dpg.configure_item(
             "texture_tag",
             default_value=new_arr,

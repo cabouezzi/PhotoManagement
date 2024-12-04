@@ -23,17 +23,17 @@ enhancers = {
 }
 
 
-def load_im_array(path):
-    im = Image.open(path)
-    im.putalpha(255)
-    res = np.array(im.getdata(), dtype=np.float32) / 255
-    print(res[:5])
-    return res
+# def load_im_array(path):
+#     im = Image.open(path)
+#     im.putalpha(255)
+#     res = np.array(im.getdata(), dtype=np.float32) / 255
+#     print(res[:5])
+#     return res
 
 
 class ImageTransform:
     def __init__(self, path) -> None:
-        self.im = Image.open(path).convert("RGBA")
+        self.im = Image.open(path).convert("F")
         self.size = self.im.size
 
     def crop(self, coords):
@@ -78,7 +78,7 @@ class ImageFilterer:
 
 class ImageEnhancer:
     def __init__(self, path) -> None:
-        self.im = Image.open(path).convert("RGBA")
+        self.im = Image.open(path).convert("F")
 
     def enhance_fn(self, factor, enhancer_type):
         try:
