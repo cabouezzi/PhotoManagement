@@ -31,7 +31,7 @@ def load_im_array(path):
     return res
 
 
-class ImageEdit:
+class ImageTransform:
     def __init__(self, path) -> None:
         self.im = Image.open(path).convert("RGBA")
         self.size = self.im.size
@@ -39,8 +39,16 @@ class ImageEdit:
     def crop(self, coords):
         return self.im.crop(coords)
 
-    def rotate(self, degree=45):
+    def rotate(self, degree):
         return self.im.rotate(degree)
+
+    def flip(self, method):
+        if method == "lr":
+            return self.im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        elif method == "tb":
+            return self.im.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        else:
+            return self.im
 
     def relative_resize(self, resize_type, pad_color="#f00"):
         try:
@@ -59,8 +67,13 @@ class ImageEdit:
             print("type does not exist.")
             return
 
-    def filter(self, filter):
-        return self.im.filter(filters[filter])
+
+class ImageFilterer:
+    def __init__(self, path) -> None:
+        self.im = Image.open(path).convert("RGBA")
+
+    def filter(self, filter_type):
+        return self.im.filter(filters[filter_type])
 
 
 class ImageEnhancer:
@@ -75,44 +88,4 @@ class ImageEnhancer:
             return enhancer.enhance(factor)
         except ValueError:
             print("wrong type enhancer")
-
-            # def brighten(self, factor):
-            #     enhancer = ImageEnhance.Brightness(self.im)
-            #     return enhancer.enhance(factor)
-
-            # def sharpen(self, factor):
-            #     enhancer = ImageEnhance.Sharpness(self.im)
-            #     return enhancer.enhance(factor)
-
-            # def colorize(self, factor):
-            #     try:
-            #         if factor > 1:
-            #             raise ValueError
-            #         enhancer = ImageEnhance.Color(self.im)
-            #         return enhancer.enhance(factor)
-            #     except ValueError:
-            #         print("invalid value")
-            #         return
-
-            # def contrast(self, factor):
-            #     try:
-            #         if factor > 1:
-            #             raise ValueError
-            #         enhancer = ImageEnhance.Contrast(self.im)
-            #         return enhancer.enhance(factor)
-            #     except ValueError:
-            #         print("invalid value")
             return
-
-
-# def increase_brightness(img, value=30):
-#     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-#     h, s, v = cv2.split(hsv)
-
-#     lim = 255 - value
-#     v[v > lim] = 255
-#     v[v <= lim] += value
-
-#     final_hsv = cv2.merge((h, s, v))
-#     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-#     return img
