@@ -10,7 +10,7 @@ class TestChat(unittest.TestCase):
 
         path = (
             pathlib.Path(__file__).parent.parent
-            / "test_data"
+            / "testdata"
             / pathlib.Path("painting-mexico.jpg")
         )
         data = photomanagement.chat.convert_image_to_bytes(path)
