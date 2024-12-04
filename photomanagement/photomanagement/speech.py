@@ -1,8 +1,9 @@
 import pyttsx3
 from dataclasses import dataclass
+from PIL import Image
 import json
-from dataclasses import dataclass
-from database import Photo
+from .chat import Chat
+from .database import Photo
 
 
 class Speech:
@@ -18,6 +19,9 @@ class Speech:
         if not isinstance(photo, Photo):
             raise ValueError("input must be a Photo")
         
+        chat = Chat()
+        response = chat.invoke(prompt="Describe this photo in one word.", images=[photo.data])["content"]
+        photo.description = response
         text = photo.description
 
         if not isinstance(text, str):
@@ -25,8 +29,3 @@ class Speech:
         
         self.engine.say(text)
         self.engine.runAndWait()
-
-resp_get = Photo("title", "this is an image description", "12-3-2024", "12-3-2024", "hash")
-print(resp_get.description)
-engine = Speech()
-engine.speak(resp_get)
