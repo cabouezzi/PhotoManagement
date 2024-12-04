@@ -8,7 +8,7 @@ import pathlib
 class TestTextualSearch(unittest.TestCase):
 
     WORKING_PATH = pathlib.Path("./test-textual-search")
-    TEST_DATA_PATH = pathlib.Path(__file__).parent.parent / "testdata" / "animal_images"
+    TEST_DATA_PATH = pathlib.Path(__file__).parent.parent / "images" / "animal_images"
     database: Database
 
     @classmethod
