@@ -170,4 +170,4 @@ database/
 test-images/
 
 # Mac
-*.DS_store
+**/.DS_Store
