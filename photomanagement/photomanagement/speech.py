@@ -8,6 +8,7 @@ from database import Photo
 class Speech:
     def __init__(self):  
         self.engine = pyttsx3.init() #initialize the pyttsx3 engine
+        self.engine.setProperty("rate", 150)
     
     def speak(self, photo: Photo):
         """
@@ -25,7 +26,7 @@ class Speech:
         self.engine.say(text)
         self.engine.runAndWait()
 
-resp_get = "this is an image description"
-print(resp_get)
+resp_get = Photo("title", "this is an image description", "12-3-2024", "12-3-2024", "hash")
+print(resp_get.description)
 engine = Speech()
 engine.speak(resp_get)
