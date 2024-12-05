@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "photomanagement"
+version = "0.1.0"
+description = "A package providing functionality for managing your photos."
+authors = [
+    "Chaniel Abou-Ezzi",
+    "Anh Le",
+    "Anh Trinh",
+    "Kailin Luo",
+    "Joseph Schwab"
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+chromadb = "^0.5.20"
+ollama = "^0.3.3"
+sentence-transformers = "^3.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
