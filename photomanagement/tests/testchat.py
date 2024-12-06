@@ -19,7 +19,7 @@ class TestChat(unittest.TestCase):
         for _ in range(n):
             chat = photomanagement.chat.Chat()
             # uncomment/change model if your pc can't handle llama3.2
-            # chat.model = "llava-llama3"
+            chat.model = "llava-llama3"
             description = chat.invoke(prompt="Describe this photo", images=[data])[
                 "content"
             ]

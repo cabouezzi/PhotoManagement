@@ -47,7 +47,7 @@ class Database(chromadb.Collection):
 
         self.image_directory_path = path / "images"
         self.client = chromadb.PersistentClient(
-            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False)
+            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False, allow_reset=True)
         )
 
         self.collection = self.client.create_collection(
@@ -60,18 +60,18 @@ class Database(chromadb.Collection):
         if not self.image_directory_path.exists():
             self.image_directory_path.mkdir()
 
-    def add_images_from_directory(self, photo_dir: pathlib.Path):
+    def add_images_from_directory(self, photo_dir: pathlib.Path) -> None:
         from .util import walk
 
         for filepath in walk(photo_dir):
             self.add_image(filepath)
 
-    def add_image(self, filepath: pathlib.Path):
+    def add_image(self, filepath: pathlib.Path) -> None:
         try:
             image = Image.open(filepath)
         # file isn't an image
-        except IOError:
-            return
+        except IOError as e:
+            raise e
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
@@ -83,7 +83,7 @@ class Database(chromadb.Collection):
         # do we really need `last_modified``...?
         file_stat = os.stat(filepath)
         last_modified_time = time.ctime(file_stat.st_mtime)
-
+        
         # photo metadata
         if exif := image._getexif():
             if "36867" in exif:
@@ -102,7 +102,7 @@ class Database(chromadb.Collection):
             ids=id,
             images=np.array(image.convert("RGB")),
             metadatas={
-                "title": "title",
+                "title": filepath.name[:-4],
                 "time_created": time_created,
                 "time_last_modified": last_modified_time,
                 "perceptual_hash": "0",  # TODO: Use hashing
@@ -128,7 +128,7 @@ class Database(chromadb.Collection):
 
         return photos
 
-    def delete_images(self, ids: str | list[str]):
+    def delete_images(self, ids: str | list[str]) -> None:
         if isinstance(ids, str):
             ids = [ids]
 
