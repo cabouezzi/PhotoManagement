@@ -1,33 +1,57 @@
 import dearpygui.dearpygui as dpg
 import cv2
 import numpy as np
+from edit_type import TypeEdit
 
 curr_img = None
 
 
 class HandleImageDPG:
     def __init__(self) -> None:
-        self.img = None
+        self.rgb_img = None  # Do not change this value
+        # self.last_active = [
+        #     {"name": "bright_and_contra", "output": None, "status": False},
+        #     {"name": "saturation", "output": None, "status": False},
+        #     {"name": "color", "output": None, "status": False},
+        # ]
 
     def cv2_open_img(self, path):
         with open(path, "rb") as stream:
             bytes_res = bytearray(stream.read())
             np_arr = np.asarray(bytes_res, dtype=np.uint8)
-            rgba_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            self.img = rgba_img
-        return rgba_img
+            rgb_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            self.rgb_img = rgb_img
+        return rgb_img
 
-    def delete_texture(self, texture_tag):
+    def delete_texture(self):
         try:
-            dpg.delete_item(texture_tag)
-            dpg.remove_alias(texture_tag)
-            dpg.delete_item(texture_tag + "_img")
+            dpg.delete_item("texture_tag")
+            dpg.remove_alias("texture_tag")
+            dpg.delete_item("image_tag")
         except ValueError:
             print("cannot delete texture")
 
-    def update_texture(self, texture_tag, image):
-        textureData = self.texture_to_data(image)
-        dpg.set_value(texture_tag, textureData)
+    def update_texture(self, sender, app_data, user_data):
+        print("updating")
+        bc_img = self.bright_contra(image=self.rgb_img)
+        hsv_img = self.set_hsv(image=bc_img)
+        textureData = self.texture_to_data(hsv_img)
+        self.delete_texture()
+        dpg.add_static_texture(
+            width=hsv_img.shape[1],
+            height=hsv_img.shape[0],
+            default_value=textureData,
+            tag="texture_tag",
+            parent="texture_registry",
+        )
+        dpg.add_image(
+            "texture_tag",
+            parent="img_window",
+            tag="image_tag",
+            # width=int(dpg.get_item_width("texture_tag") * 0.4),
+            # height=int(dpg.get_item_height("texture_tag") * 0.4),
+        )
+        print("done updating")
 
     def texture_to_data(self, image):
         auxImg = cv2.cvtColor(image, cv2.COLOR_RGB2BGRA)
@@ -36,10 +60,28 @@ class HandleImageDPG:
         auxImg = np.true_divide(auxImg, 255.0)
         return auxImg
 
-    def bright_contra(self, sender, app_data, user_data):
-        new_img = None
-        if sender == "bright":
-            new_img = cv2.convertScaleAbs(self.img, alpha=1, beta=app_data)
-        else:
-            new_img = cv2.convertScaleAbs(self.img, alpha=app_data, beta=0)
-        self.update_texture(user_data, new_img)
+    # def get_last_active(self):
+    #     for item in self.last_active:
+    #         if item["status"] == True:
+    #             item["status"] = False
+    #             return TypeEdit[item["name"]].value
+    #     return -1
+
+    def bright_contra(self, image):
+        alpha = dpg.get_value("con")
+        beta = dpg.get_value("bri")
+        return cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+        # self.update_texture(user_data, new_img)
+
+    def set_hsv(self, image):
+        hue = dpg.get_value("hue")
+        saturation = dpg.get_value("sat")
+        img_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype("float32")
+        (h, s, v) = cv2.split(img_hsv)
+        h = h * hue
+        h = np.clip(h, -127, 127)
+        s = s * saturation
+        s = np.clip(s, 0, 255)
+        return cv2.cvtColor(
+            cv2.merge([h, s, v]).astype("uint8"), cv2.COLOR_HSV2RGB
+        )
