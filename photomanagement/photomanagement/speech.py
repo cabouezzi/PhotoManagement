@@ -1,7 +1,6 @@
 import pyttsx3
 from dataclasses import dataclass
 from PIL import Image
-import json
 from .chat import Chat
 from .database import Photo
 
