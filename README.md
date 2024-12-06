@@ -1,5 +1,8 @@
 ## 1. Photo Management
-An application that provides an API for storing photos and interacting with them. Users will be able to add/delete photos from the library. There will be options to find similar/duplicate photos and edit photos. The library will be able to generate a text description of a selected image and uses a text to speech engine to play audio.
+An application that provides an API for storing photos and interacting with them. Users will be able to add/delete photos from the library. There will be an UI displaying a selected photo and options to edit the photo's brightness, saturation, and contrast. The library to generate a text description of a selected image and uses a text to speech engine to play audio.
+
+Features:
+- UI displays image
 
 ## 2. Installation Instructions
 
