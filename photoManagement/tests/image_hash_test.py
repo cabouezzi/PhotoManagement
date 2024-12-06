@@ -2,7 +2,7 @@ from PIL import Image
 from imagehash import dhash
 from db import Photo, database
 from datetime import datetime
-from image_hash import hash_image, is_duplicate
+from photoManagement.photomanagement.image_hash import hash_image, is_duplicate
 
 
 image1 = Image.open('testData/testImages/image1.jpg')

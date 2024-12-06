@@ -49,6 +49,7 @@ class Database(chromadb.Collection):
         self.client = chromadb.PersistentClient(
             path=str(path), settings=chromadb.Settings(anonymized_telemetry=False, allow_reset=True)
         )
+        
 
         self.collection = self.client.create_collection(
             name="multimodal",
