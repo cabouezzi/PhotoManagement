@@ -19,10 +19,13 @@ class Speech:
         if not isinstance(photo, Photo):
             raise ValueError("input must be a Photo")
         
-        chat = Chat()
-        response = chat.invoke(prompt="Describe this photo in one word.", images=[photo.data])["content"]
-        photo.description = response
         text = photo.description
+
+        if text == "None":
+            chat = Chat()
+            response = chat.invoke(prompt="Describe this photo in one sentence.", images=[photo.data])["content"]
+            photo.description = response
+            text = photo.description
 
         if not isinstance(text, str):
             raise ValueError("photo description is empty or is not a string")
