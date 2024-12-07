@@ -22,7 +22,7 @@ class Speech:
 
         if text == "None":
             chat = Chat()
-            response = chat.invoke(prompt="Describe this photo in one sentence.", images=[photo.data])["content"]
+            response = chat.invoke(prompt="Describe this photo in one sentence.", images=[photo.data.filename])["content"]
             photo.description = response
             text = photo.description
 
