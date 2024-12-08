@@ -14,7 +14,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 chromadb = "^0.5.20"
-pillow = "^11.0.0"
 ollama = "^0.3.3"
 sentence-transformers = "^3.2.1"
 pillow = "^11.0.0"

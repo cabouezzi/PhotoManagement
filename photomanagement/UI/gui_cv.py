@@ -113,27 +113,19 @@ def create_widget_group():
         )
         dpg.add_separator()
         dpg.add_text(default_value="Filter")
+        dpg.add_text(default_value="Blur", indent=5)
+        dpg.add_radio_button(["Box", "Gaussian"], tag="blur_type", indent=15)
         dpg.add_input_int(
-            label="Box Blur",
+            label="Blur Value",
             default_value=1,
-            tag="box",
+            tag="blur_value",
             step=1,
             step_fast=2,
             min_value=1,
-            max_value=5,
+            max_value=10,
             min_clamped=True,
             max_clamped=True,
-        )
-        dpg.add_input_int(
-            label="Gaussian Blur",
-            default_value=1,
-            tag="gau",
-            step=1,
-            step_fast=2,
-            min_value=1,
-            max_value=5,
-            min_clamped=True,
-            max_clamped=True,
+            indent=15,
         )
         dpg.add_separator()
         dpg.add_text(default_value="Review Changes")
@@ -148,15 +140,29 @@ Window Display and Resize Configuration
 
 
 def viewport_resize(sender, app_data):
-    dpg.set_item_pos("widget_window", pos=(dpg.get_viewport_width() - 400, 30))
+    dpg.set_item_pos(
+        "widget_window", pos=(dpg.get_item_width("photo_window") - 400, 30)
+    )
 
 
 def main():
     file_extensions = ["jpeg", "jpg", "png", "webp", "heic"]
     dpg.create_context()
     dpg.create_viewport(title="Photo Management", resizable=True)
-    dpg.set_viewport_resize_callback(callback=viewport_resize)
-    with dpg.window(label="Main window", tag="main_window"):
+    # dpg.set_viewport_resize_callback(callback=viewport_resize)
+    with dpg.item_handler_registry(tag="widget_handler") as handler:
+        dpg.add_item_resize_handler(
+            callback=lambda: dpg.set_item_pos(
+                "widget_window",
+                pos=(dpg.get_item_width("photo_window") - 300, 30),
+            )
+        )
+    with dpg.window(
+        label="Main window",
+        tag="photo_window",
+        width=1200,
+        height=700,
+    ):
         with dpg.menu_bar():
             with dpg.file_dialog(
                 directory_selector=False,
@@ -185,10 +191,13 @@ def main():
                 pos=(dpg.get_viewport_width() - 400, 30),
                 tag="widget_window",
                 parent="widget_window_group",
+                width=300,
             )
             create_widget_group()
+    # dpg.hide_item("photo_window")
+    dpg.bind_item_handler_registry("photo_window", "widget_handler")
     dpg.setup_dearpygui()
-    dpg.set_primary_window("main_window", True)
+    # dpg.set_primary_window("photo_window", True)
     dpg.show_viewport()
     dpg.start_dearpygui()
     dpg.destroy_context()

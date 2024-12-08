@@ -31,9 +31,8 @@ class HandleImageDPG:
         bc_img = self.bright_contra(image=self.rgb_img)
         hsv_img = self.set_hsv(image=bc_img)
         sharp = self.set_sharp(hsv_img)
-        box_blur_img = self.box_blur(sharp)
-        gau_blur_img = self.gaussian_blur(box_blur_img)
-        textureData = self.texture_to_data(gau_blur_img)
+        blur_img = self.blur(sharp)
+        textureData = self.texture_to_data(blur_img)
         self.delete_texture()
         dpg.add_static_texture(
             width=hsv_img.shape[1],
@@ -95,10 +94,11 @@ class HandleImageDPG:
         kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
         return cv2.filter2D(image, -1, kernel)
 
-    def box_blur(self, image):
-        dim = dpg.get_value("box")
-        return cv2.blur(image, (dim, dim))
-
-    def gaussian_blur(self, image):
-        dim = dpg.get_value("gau")
-        return cv2.GaussianBlur(image, (dim, dim), 0)
+    def blur(self, image):
+        dim = dpg.get_value("blur_value")
+        if dpg.get_value("blur_type") == "Box":
+            return cv2.blur(image, (dim, dim))
+        else:
+            if dim % 2 == 0:
+                dim += 1
+            return cv2.GaussianBlur(image, (dim, dim), 0)
