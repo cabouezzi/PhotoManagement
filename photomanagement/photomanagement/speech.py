@@ -2,8 +2,9 @@ import pyttsx3
 from dataclasses import dataclass
 from PIL import Image
 from .chat import Chat
-from .database import Photo
+from .database import Photo, Database
 
+database: Database
 
 class Speech:
     def __init__(self):  
@@ -23,7 +24,8 @@ class Speech:
         if text == "None":
             chat = Chat()
             response = chat.invoke(prompt="Describe this photo in one sentence.", images=[photo.data.filename])["content"]
-            photo.description = response
+            # TODO update photo description in database
+            database.update_description(photo.id, response)
             text = photo.description
 
         if not isinstance(text, str):
