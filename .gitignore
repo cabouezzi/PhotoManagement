@@ -129,6 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+tts-env/
 
 # Spyder project settings
 .spyderproject
@@ -173,4 +174,4 @@ photomanagement/UI/gui.py
 photomanagement/UI/edit.py
 
 # Mac
-*.DS_store
+**/.DS_Store
