@@ -8,12 +8,7 @@ curr_img = None
 
 class HandleImageDPG:
     def __init__(self) -> None:
-        self.rgb_img = None  # Do not change this value
-        # self.last_active = [
-        #     {"name": "bright_and_contra", "output": None, "status": False},
-        #     {"name": "saturation", "output": None, "status": False},
-        #     {"name": "color", "output": None, "status": False},
-        # ]
+        self.rgb_img = None  # Do not change this value after init
 
     def cv2_open_img(self, path):
         with open(path, "rb") as stream:
@@ -35,7 +30,10 @@ class HandleImageDPG:
         print("updating")
         bc_img = self.bright_contra(image=self.rgb_img)
         hsv_img = self.set_hsv(image=bc_img)
-        textureData = self.texture_to_data(hsv_img)
+        sharp = self.set_sharp(hsv_img)
+        box_blur_img = self.box_blur(sharp)
+        gau_blur_img = self.gaussian_blur(box_blur_img)
+        textureData = self.texture_to_data(gau_blur_img)
         self.delete_texture()
         dpg.add_static_texture(
             width=hsv_img.shape[1],
@@ -70,12 +68,16 @@ class HandleImageDPG:
     def bright_contra(self, image):
         alpha = dpg.get_value("con")
         beta = dpg.get_value("bri")
+        if alpha == 1 and beta == 0:
+            return image
         return cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
         # self.update_texture(user_data, new_img)
 
     def set_hsv(self, image):
         hue = dpg.get_value("hue")
         saturation = dpg.get_value("sat")
+        if hue == 1 and saturation == 1:
+            return image
         img_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype("float32")
         (h, s, v) = cv2.split(img_hsv)
         h = h * hue
@@ -85,3 +87,18 @@ class HandleImageDPG:
         return cv2.cvtColor(
             cv2.merge([h, s, v]).astype("uint8"), cv2.COLOR_HSV2RGB
         )
+
+    def set_sharp(self, image):
+        sharp = dpg.get_value("sha")
+        if sharp == 1:
+            return image
+        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+        return cv2.filter2D(image, -1, kernel)
+
+    def box_blur(self, image):
+        dim = dpg.get_value("box")
+        return cv2.blur(image, (dim, dim))
+
+    def gaussian_blur(self, image):
+        dim = dpg.get_value("gau")
+        return cv2.GaussianBlur(image, (dim, dim), 0)

@@ -11,53 +11,26 @@ File Handler
 """
 
 
-def load_img_init(path):
-    try:
-        # when there is path
-        if dpg.get_value("img_path") != "Path ":
-            # width, height, channels, data = dpg.load_image(path)
-            dpg.delete_item("texture_tag")
-            dpg.remove_alias("texture_tag")
-            dpg.delete_item("image_tag")
-        with dpg.texture_registry(show=True, tag="texture_registry"):
-            handle_img_obj = HandleImageDPG()
-            rgba_img = handle_img_obj.cv2_open_img(path=path)
-            cv2_data = handle_img_obj.texture_to_data(rgba_img)
-            dpg.add_raw_texture(
-                width=rgba_img.shape[1],
-                height=rgba_img.shape[0],
-                default_value=cv2_data,
-                tag="texture_tag",
-            )
-            dpg.add_image(
-                "texture_tag",
-                parent="img_window",
-                tag="image_tag",
-            )
-            dpg.set_value("img_path", value=f"Path {path}")
-            create_widget_group(handle_img_obj)
-    except ValueError:
-        print("cannot load file. path does not exist")
-
-
 def choose_file_callback(sender, app_data):
     """
     Load image, adjust image path text, load widget groups
     """
     path = app_data["file_path_name"]
     # width, height, channels, data = dpg.load_image(path)
-    handle_img_obj = HandleImageDPG()
-    rgba_img = handle_img_obj.cv2_open_img(path=path)
-    cv2_data = handle_img_obj.texture_to_data(rgba_img)
     try:
         # when there is path
         if dpg.get_value("img_path") != "Path ":
+            print("img already exist")
             # width, height, channels, data = dpg.load_image(path)
             dpg.delete_item("texture_tag")
             dpg.remove_alias("texture_tag")
+            dpg.delete_item("texture_registry")
             dpg.delete_item("image_tag")
         with dpg.texture_registry(show=True, tag="texture_registry"):
-            dpg.add_raw_texture(
+            handle_img_obj = HandleImageDPG()
+            rgba_img = handle_img_obj.cv2_open_img(path)
+            cv2_data = handle_img_obj.texture_to_data(rgba_img)
+            dpg.add_static_texture(
                 width=rgba_img.shape[1],
                 height=rgba_img.shape[0],
                 default_value=cv2_data,
@@ -69,7 +42,9 @@ def choose_file_callback(sender, app_data):
                 tag="image_tag",
             )
         dpg.set_value("img_path", value=f"Path {path}")
-        create_widget_group(handle_img_obj)
+        dpg.set_item_callback("apply_btn", handle_img_obj.update_texture)
+        # create_widget_group(handle_img_obj)
+        return handle_img_obj
     except ValueError:
         print("cannot load file. path does not exist")
 
@@ -79,7 +54,7 @@ Widget loading and layout
 """
 
 
-def create_widget_group(obj):
+def create_widget_group():
     with dpg.group(parent="widget_window"):
         dpg.add_text(default_value="Enhance")
         dpg.add_input_int(
@@ -90,6 +65,8 @@ def create_widget_group(obj):
             step_fast=5,
             min_value=0,
             max_value=100,
+            min_clamped=True,
+            max_clamped=True,
         )
         dpg.add_input_double(
             label="Contrast",
@@ -98,6 +75,8 @@ def create_widget_group(obj):
             step=0.1,
             min_value=0.1,
             max_value=5,
+            min_clamped=True,
+            max_clamped=True,
         )
         dpg.add_input_double(
             label="Hue",
@@ -107,6 +86,8 @@ def create_widget_group(obj):
             step_fast=2,
             min_value=-5,
             max_value=5,
+            min_clamped=True,
+            max_clamped=True,
         )
         dpg.add_input_double(
             label="Saturation",
@@ -116,11 +97,48 @@ def create_widget_group(obj):
             step_fast=2,
             min_value=0,
             max_value=10,
+            min_clamped=True,
+            max_clamped=True,
         )
+        dpg.add_input_double(
+            label="Sharpness",
+            default_value=1,
+            tag="sha",
+            step=0.1,
+            step_fast=2,
+            min_value=1,
+            max_value=5,
+            min_clamped=True,
+            max_clamped=True,
+        )
+        dpg.add_separator()
+        dpg.add_text(default_value="Filter")
+        dpg.add_input_int(
+            label="Box Blur",
+            default_value=1,
+            tag="box",
+            step=1,
+            step_fast=2,
+            min_value=1,
+            max_value=5,
+            min_clamped=True,
+            max_clamped=True,
+        )
+        dpg.add_input_int(
+            label="Gaussian Blur",
+            default_value=1,
+            tag="gau",
+            step=1,
+            step_fast=2,
+            min_value=1,
+            max_value=5,
+            min_clamped=True,
+            max_clamped=True,
+        )
+        dpg.add_separator()
+        dpg.add_text(default_value="Review Changes")
         dpg.add_button(
-            label="Apply Changes",
-            callback=obj.update_texture,
-            user_data="texture_tag",
+            label="Apply Changes", user_data="texture_tag", tag="apply_btn"
         )
 
 
@@ -153,7 +171,9 @@ def main():
                         f".{file_extension}", color=(150, 255, 150, 255)
                     )
             dpg.add_button(
-                label="add file", callback=lambda: dpg.show_item("file_dialog")
+                label="add file",
+                callback=lambda: dpg.show_item("file_dialog"),
+                user_data="file_dialog",
             )
         with dpg.group(horizontal=True):
             with dpg.child_window(
@@ -166,11 +186,7 @@ def main():
                 tag="widget_window",
                 parent="widget_window_group",
             )
-            dpg.add_text(
-                default_value="Add a file to load widget",
-                tag="info",
-                parent="widget_window",
-            )
+            create_widget_group()
     dpg.setup_dearpygui()
     dpg.set_primary_window("main_window", True)
     dpg.show_viewport()
