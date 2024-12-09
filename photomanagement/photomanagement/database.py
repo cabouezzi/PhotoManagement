@@ -145,11 +145,11 @@ class Database(chromadb.Collection):
         # remove entries from chroma
         self.collection.delete(ids=ids)
 
-    def update_description(self, photoid: str, description: str):
-        if not isinstance(description, str):
-            raise ValueError("photo description must be string")
+    # def update_photo(self, photo: Photo, description: str):
+    #     if not isinstance(description, str):
+    #         raise ValueError("photo description must be string")
 
-        self.update(
-            id=[photoid],
-            metadatas=[{"description": description}],
-        )
+    #     self.update(
+    #         id=[photo.id],
+    #         metadatas=[{"description": description}],
+    #     )
