@@ -7,6 +7,7 @@ import logging
 from dataclasses import dataclass
 from PIL import Image
 
+
 import chromadb
 from chromadb.utils.data_loaders import ImageLoader
 from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
@@ -14,17 +15,18 @@ from chromadb.utils.embedding_functions.open_clip_embedding_function import (
     OpenCLIPEmbeddingFunction,
 )
 
-
+import glob
+import logging
+import shutil
 @dataclass
 class Photo:
-    id: str
-    title: str
-    description: str
-    time_created: str
-    time_last_modified: str
-    perceptual_hash: str
-    source: str
-    data: Image
+    title: str = None
+    description: str = None
+    time_created: str = None
+    time_last_modified: str = None
+    perceptual_hash: str = None
+    source: pathlib.Path | str = None
+    data: Image = None
 
 
 class Database(chromadb.Collection):
@@ -42,12 +44,13 @@ class Database(chromadb.Collection):
         image_loader = ImageLoader()
 
         if isinstance(path, str):
-            path = pathlib.Path(path)
-        path = path or pathlib.Path("./database")
+            self.db_path = pathlib.Path(path)
+        self.db_path = path or pathlib.Path("./database")
 
-        self.image_directory_path = path / "images"
+        self.image_directory_path = self.db_path / "images"
         self.client = chromadb.PersistentClient(
-            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False, allow_reset=True)
+            path=str(self.db_path), 
+            settings=chromadb.Settings(anonymized_telemetry=False, allow_reset=True)
         )
         
 
@@ -61,22 +64,42 @@ class Database(chromadb.Collection):
         if not self.image_directory_path.exists():
             self.image_directory_path.mkdir()
 
-    def add_images_from_directory(self, photo_dir: pathlib.Path) -> None:
+    def add_images_from_directory(self, photo_dir: pathlib.Path) -> list[str]:
+        '''
+        Adds all images from a directory to the database.
+        Also generates any required information. 
+
+        Throws IOError if a filepath does not lead to an image.
+        All images before the IOError will be inserted into the database
+        Returns a list of all ids added
+        '''
+
         from .util import walk
 
+        img_ids = []
         for filepath in walk(photo_dir):
-            self.add_image(filepath)
+            img_ids.append(self.add_image_by_path(filepath))
 
-    def add_image(self, filepath: pathlib.Path) -> None:
+        return img_ids
+
+    def add_image_by_path(self, filepath: pathlib.Path) -> str:
+        '''
+        Add an image to the database.
+        Also generates any required information. 
+
+        Throws IOError if filepath does not lead to an image.
+        Returns the id of the image
+        '''
         try:
             image = Image.open(filepath)
         # file isn't an image
         except IOError as e:
+            logging.exception(f"Exception when adding image by path: {filepath}")
             raise e
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
-        controlled_path = self.image_directory_path / f"{id}.png"
+        controlled_path = self.image_directory_path / f"{id}.PNG"
         image.save(controlled_path, format="PNG")
 
         # step 2: add properties to chroma
@@ -92,9 +115,9 @@ class Database(chromadb.Collection):
             elif "36868" in exif:
                 time_created = exif["36868"]
             else:
-                time_created = time.ctime(file_stat.st_ctime)
+                time_created = time.ctime(file_stat.st_birthtime)
         else:
-            time_created = time.ctime(file_stat.st_ctime)
+            time_created = time.ctime(file_stat.st_birthtime)
 
         # TODO: LLM stuff takes way too long, consider moving to background thread or just ditch description entirely
         description = "None"
@@ -106,13 +129,43 @@ class Database(chromadb.Collection):
                 "title": filepath.name[:-4],
                 "time_created": time_created,
                 "time_last_modified": last_modified_time,
-                "perceptual_hash": "0",  # TODO: Use hashing
+                "perceptual_hash": "None",  # TODO: Use hashing
                 "description": description,
                 "source": str(filepath),
             },
         )
+        return id
 
-    def query_with_text(self, prompt: str, limit: int = 6) -> list[Photo]:
+    def add_image(self, image: Photo) -> str:
+        '''
+        Add an image to the database. Using a Photo object.
+        Does NOT auto generate missing data.
+
+        Throws IOError if filepath does not lead to an image.
+        Returns the id of the image
+        '''
+        img_id = str(uuid.uuid4())
+        controlled_path = self.image_directory_path / f"{img_id}.PNG"
+        image.data.save(controlled_path, format="PNG")
+
+        self.collection.add(
+            ids=img_id,
+            images=np.array(image.data.convert("RGB")),
+            metadatas={
+                "title": image.title,
+                "time_created": image.time_created,
+                "time_last_modified": image.time_last_modified,
+                "perceptual_hash": image.perceptual_hash,
+                "description": image.description,
+                "source": str(image.source),
+            },
+        )
+        return img_id
+
+    def query_with_text(self, prompt: str, limit: int = 6) -> list[(str, Photo)]:
+        '''
+        Query the database fot *images* with the above text and return *limit* photos.
+        '''
         results = self.collection.query(
             query_texts=prompt, include=["metadatas", "data"], n_results=limit
         )
@@ -122,20 +175,26 @@ class Database(chromadb.Collection):
         photos = [None] * N
         for i in range(N):
             metadata = results["metadatas"][0][i]
-            id = results["ids"][0][i]
-            image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
-            image_data = Image.open(image_path)
-            photos[i] = Photo(id=id, **metadata, data=image_data)
+            img_id = results["ids"][0][i]
+            
+            image_path = pathlib.Path(self.image_directory_path) / f"{img_id}.PNG"
+            with Image.open(image_path) as image_data:
+                # photos[i] = Photo(id=id, **metadata, data=image_data)
+                photos[i] = (img_id, Photo( **metadata, data=image_data))
+            
 
         return photos
 
-    def delete_images(self, ids: str | list[str]) -> None:
+    def delete_images(self, ids: str | list[str]) -> bool:
         if isinstance(ids, str):
             ids = [ids]
 
+        if len(ids) == 0:
+            return False
+        
         # remove from images directory
         for id in ids:
-            image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
+            image_path = pathlib.Path(self.image_directory_path) / f"{id}.PNG"
 
             if image_path.exists():
                 image_path.unlink()
@@ -145,3 +204,25 @@ class Database(chromadb.Collection):
 
         # remove entries from chroma
         self.collection.delete(ids=ids)
+        return True
+
+        
+        
+
+        # if is_reset:
+        #     shutil.rmtree(self.db_path / "images")
+        #     while pathlib.Path(self.db_path / "images").exists():
+        #         pass
+
+        #     os.mkdir(self.db_path / "images")
+        #     while not pathlib.Path(self.db_path / "images").exists():
+        #         pass
+        # else:
+        #     raise IOError("Cannot Reset the database!")
+        
+        # self.__init__(self.db_path)
+
+        # self.client = chromadb.PersistentClient(
+        #     path=str(self.db_path), settings=chromadb.Settings(anonymized_telemetry=False, allow_reset=True)
+        # )
+
