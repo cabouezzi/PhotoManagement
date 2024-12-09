@@ -1,7 +1,8 @@
 import dearpygui.dearpygui as dpg
 import cv2
 import numpy as np
-from edit_type import TypeEdit
+
+# from edit_type import TypeEdit
 
 curr_img = None
 
