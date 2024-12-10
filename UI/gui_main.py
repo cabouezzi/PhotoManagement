@@ -361,7 +361,7 @@ def main():
                 width=400,
                 horizontal_scrollbar=True,
             )
-            dpg.add_texture_registry(tag="info_window_text_reg", show=True)
+            dpg.add_texture_registry(tag="info_window_text_reg", show=False)
     dpg.set_primary_window("main_window", True)
     dpg.bind_item_handler_registry("main_window", "info_window_handler")
     dpg.set_global_font_scale(1.5)
