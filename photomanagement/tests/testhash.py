@@ -23,10 +23,14 @@ class TestHash(unittest.TestCase):
 
         # https://stackoverflow.com/questions/76518144/trouble-deleting-chromadb-documents
         from chromadb.api.client import SharedSystemClient
+
         cls.database.client._system.stop()
-        SharedSystemClient._identifier_to_system.pop(cls.database.client._identifier, None)
+        SharedSystemClient._identifier_to_system.pop(
+            cls.database.client._identifier, None
+        )
 
         import shutil
+
         cls.database = None
         shutil.rmtree(cls.WORKING_PATH)
 

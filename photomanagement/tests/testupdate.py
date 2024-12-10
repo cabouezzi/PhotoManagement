@@ -3,6 +3,7 @@ import pathlib
 from photomanagement import *
 from PIL import Image
 
+
 class TestUpdate(unittest.TestCase):
     WORKING_PATH = pathlib.Path("./test-speech")
     TEST_DATA_PATH = pathlib.Path(__file__).parent.parent / "images" / "animal_images"
@@ -20,7 +21,7 @@ class TestUpdate(unittest.TestCase):
 
         cls.database = None
         shutil.rmtree(cls.WORKING_PATH)
-    
+
     def test_update_desc(self):
         photo = self.database.query_with_text("cat")
         # desc = self.speechEngine.speak(photo[0])
