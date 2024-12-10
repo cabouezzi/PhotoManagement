@@ -118,6 +118,7 @@ class Database(chromadb.Collection):
         # file isn't an image
         except IOError as e:
             logging.exception(f"Exception when adding image @ {filepath}: {e}")
+            return
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
