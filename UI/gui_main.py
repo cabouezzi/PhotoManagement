@@ -64,16 +64,34 @@ def speak(sender, app_data, user_data):
 
 
 def print_userdata(sender, app_data, user_data):
-    print(f"sender {sender}")
-    print(f"app_data {app_data}")
-    print(f"user_data {user_data}")
+    # print(f"sender {sender}")
+    # print(f"app_data {app_data}")
+    # print(f"user_data {user_data}")
+    if len(dpg.get_item_children("info_window")) > 0:
+        dpg.delete_item("info_window", children_only=True)
+    p = user_data
+    with dpg.texture_registry():
+        im_1D = img_to_1D_arr(p.data.convert("RGBA"))
+        texture_tag = dpg.add_static_texture(
+            width=p.data.width,
+            height=p.data.height,
+            default_value=im_1D,
+        )
+        dpg.add_image(texture_tag, parent="info_window")
+        with dpg.group(parent="info_window"):
+            dpg.add_text(f"Id: {p.id}")
+            dpg.add_text(f"Title: {p.title}")
+            dpg.add_text(f"Time Created: {p.time_created}")
+            dpg.add_text(f"Time Last Modified: {p.time_last_modified}")
 
+def find_dup(sender, app_data):
+    
 
 def search_photo(sender, app_data):
     # with dpg.item_handler_registry() as search_handler_reg:
     #     dpg.add_item_double_clicked_handler(callback=print_userdata)
     resulted_photos = db.query_with_text(app_data)
-    with dpg.window(label="Results") as res:
+    with dpg.window(label="Results", width=500, height=500) as res:
         with dpg.texture_registry():
             for res_photo in resulted_photos:
                 im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
@@ -111,7 +129,12 @@ def load_all_img(path):
                 height=photo.data.height,
                 default_value=im_1D,
             )
-            img_tag = dpg.add_image(texture_tag, parent="image_group")
+            img_tag = dpg.add_image_button(
+                texture_tag,
+                parent="image_group",
+                callback=print_userdata,
+                user_data=photo,
+            )
             with dpg.popup(img_tag):
                 dpg.add_button(label="Find Duplicates")
                 dpg.add_button(
@@ -119,7 +142,8 @@ def load_all_img(path):
                     user_data=photo.data.filename,
                     callback=choose_img_callback,
                 )
-                dpg.add_button(label="Speak", user_data=photo, callback=speak)
+                dpg.add_button(label="Speak", user_data=photo)
+                dpg.add_button(label="Delete")
     dpg.set_item_callback("search_box", callback=search_photo)
 
 
@@ -209,6 +233,7 @@ def main():
                 tag="info_window",
                 parent="info_window_group",
                 width=400,
+                horizontal_scrollbar=True,
             )
     dpg.set_primary_window("main_window", True)
     dpg.bind_item_handler_registry("main_window", "info_window_handler")
