@@ -2,7 +2,6 @@ import dearpygui.dearpygui as dpg
 import cv2
 import numpy as np
 from PIL import Image
-from gui_main import extra_fn
 
 # from edit_type import TypeEdit
 
