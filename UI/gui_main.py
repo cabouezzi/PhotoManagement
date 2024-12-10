@@ -43,17 +43,15 @@ File Handler
 
 def speak(sender, app_data, user_data):
     print("speaking")
+    im = db.get(user_data.id)
     dpg.disable_item("spe")
-    desc = speech.speak_stream(user_data)
-    db.update_photo(user_data, desc)
+    desc = speech.speak(im)
+    db.update_photo(im, desc)
     print(desc)
     dpg.enable_item("spe")
 
 
 def delete_img(sender, app_data, user_data):
-    print(f"sender is: {sender}")
-    print(f"app_data is: {app_data}")
-    print(f"user_data is: {user_data}")
     dpg.delete_item(user_data["tag"])
     dpg.delete_item("info_window", children_only=True)
     dpg.delete_item(user_data["sender"])
@@ -128,25 +126,25 @@ def search_photo(sender, app_data):
     # with dpg.item_handler_registry() as search_handler_reg:
     #     dpg.add_item_double_clicked_handler(callback=print_userdata)
     resulted_photos = db.query_with_text(app_data)
-    # with dpg.window(label="Results", width=500, height=500) as res:
-    #     with dpg.texture_registry():
-    #         for res_photo in resulted_photos:
-    #             im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
-    #             texture_tag = dpg.add_static_texture(
-    #                 width=res_photo.data.width,
-    #                 height=res_photo.data.height,
-    #                 default_value=im_1D,
-    #             )
-    #             img_tag = dpg.add_image_button(
-    #                 texture_tag,
-    #                 parent=res,
-    #                 callback=extra_fn,
-    #                 user_data={"photo": res_photo},
-    #             )
-    #             # dpg.bind_item_handler_registry(
-    #             #     img_tag, search_handler_reg
-    #             # )
-    render_results(resulted_photos)
+    with dpg.window(label="Results", width=500, height=500) as res:
+        with dpg.texture_registry():
+            for res_photo in resulted_photos:
+                im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+                texture_tag = dpg.add_static_texture(
+                    width=res_photo.data.width,
+                    height=res_photo.data.height,
+                    default_value=im_1D,
+                )
+                img_tag = dpg.add_image_button(
+                    texture_tag,
+                    parent=res,
+                    callback=extra_fn,
+                    user_data={"photo": res_photo},
+                )
+                # dpg.bind_item_handler_registry(
+                #     img_tag, search_handler_reg
+                # )
+    # render_results(resulted_photos)
 
 
 def extra_fn(sender, app_data, user_data):
@@ -229,7 +227,6 @@ def load_img_chosen():
                 tag=photo.id,
                 user_data={"photo": photo},
             )
-    dpg.set_item_callback("search_box", callback=search_photo)
     dpg.delete_item(loading)
 
 
@@ -330,7 +327,11 @@ def main():
                 pos=(10, 30), tag="all_img_window", horizontal_scrollbar=True
             ):
                 dpg.add_input_text(
-                    label="Search", width=500, tag="search_box", on_enter=True
+                    label="Search",
+                    width=500,
+                    tag="search_box",
+                    callback=search_photo,
+                    on_enter=True,
                 )
                 with dpg.group(tag="image_group"):
                     with dpg.texture_registry(tag="main_texture_registry"):
