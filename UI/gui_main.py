@@ -43,7 +43,7 @@ File Handler
 
 def speak(sender, app_data, user_data):
     print("speaking")
-    desc = speech.speak(user_data)
+    desc = speech.speak_stream(user_data)
     db.update_photo(user_data, desc)
     print(desc)
 
