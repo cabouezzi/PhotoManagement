@@ -7,7 +7,7 @@ import pathlib
 
 class TestTextualSearch(unittest.TestCase):
 
-    WORKING_PATH = pathlib.Path("./test-textual-search")
+    WORKING_PATH = pathlib.Path("./test-dbs/test-textual-search")
     TEST_DATA_PATH = pathlib.Path(__file__).parent.parent / "images" / "animal_images"
     database: Database
 
@@ -56,12 +56,9 @@ class TestTextualSearch(unittest.TestCase):
         photos = self.database.query_with_text("cows")
 
         # chicken in any order
-        expected_chickens = [
+        expected_cows = [
             Image.open(self.TEST_DATA_PATH / "OIP--aZkgJekoo6fjs3pfBRsBAHaE8.jpeg"),
             Image.open(self.TEST_DATA_PATH / "OIP-2RFVoPqR9gqjucro1rp7uwHaE8.jpeg"),
         ]
-        output_chickens = [photo.data for photo in photos[:2]]
-        self.compare_image_sets(expected_chickens, output_chickens)
-        self.assertEqual(
-            list(output_chickens[0].getdata()), list(expected_chickens[0].getdata())
-        )
+        output_cows = [photo.data for photo in photos[:2]]
+        self.compare_image_sets(expected_cows, output_cows)
