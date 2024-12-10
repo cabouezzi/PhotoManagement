@@ -1,11 +1,15 @@
 import unittest
 import pathlib
 import photomanagement.chat
+import os
 
 
 class TestChat(unittest.TestCase):
 
-    @unittest.skip("This test invokes the LLM 5 times and will take a while.")
+    @unittest.skipUnless(
+        os.getenv("CHAT") == "true",
+        "This test invokes the LLM 5 times and will take a while. To use chat, pass CHAT=true before calling unittest",
+    )
     def test_image_description(self):
         from .util import semscore
 
@@ -33,6 +37,10 @@ class TestChat(unittest.TestCase):
 
         self.assertTrue(score > 0.6, f"Score: {score}\n\n{description}")
 
+    @unittest.skipUnless(
+        os.getenv("CHAT") == "true",
+        "To use chat, pass CHAT=true before calling unittest",
+    )
     def test_history(self):
         chat = photomanagement.chat.Chat()
         # uncomment/change model if your pc can't handle llama3.2
