@@ -10,6 +10,8 @@ def convert_image_to_bytes(path: pathlib.Path) -> bytes:
 
 
 class Chat:
+    """A class to make it easier to keep track of message history when chatting with LLM's using Ollama."""
+
     model: str = "llama3.2-vision:11b"
     """The name of the model on Ollama. Default is `llama3.2-vision:11b`."""
 
@@ -20,7 +22,12 @@ class Chat:
         self.messages = messages
 
     def invoke(self, prompt: str, images: list[bytes] = []) -> ollama.Message:
-        """Prompts the model with a chat message."""
+        """
+        Prompts the model with a chat message.
+
+        :param prompt: the next message to invoke to the LLM.
+        :param images: a list of images (raw bytes) to pass along with the message.
+        """
 
         invocation = ollama.Message(role="user", content=prompt, images=images)
         self.messages.append(invocation)
@@ -34,7 +41,12 @@ class Chat:
     def invoke_stream(
         self, prompt: str, images: list[bytes] = []
     ) -> Generator[str, None, ollama.Message]:
-        """Prompts the model with a chat message nad returns a stream"""
+        """
+        Prompts the model with a chat message and returns a stream of tokens.
+
+        :param prompt: the next message to invoke to the LLM.
+        :param images: a list of images (raw bytes) to pass along with the message.
+        """
         invocation = ollama.Message(role="user", content=prompt, images=images)
         self.messages.append(invocation)
         stream = ollama.chat(model=self.model, messages=self.messages, stream=True)

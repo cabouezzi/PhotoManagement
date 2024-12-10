@@ -20,27 +20,41 @@ from .hash import perceptual_hash, hash_to_str
 @dataclass
 class Photo:
     id: str
+    """The id of the photo within the system"""
     title: str
+    """The title of the photo"""
     description: str
+    """A textual description of the photo. This is stored after calling `Speech().speak(•)`, otherwise the value is "None"."""
     time_created: str
+    """Time that the photo was taken"""
     time_last_modified: str
+    """Time that the photo was last modified"""
     perceptual_hash: str
+    """The perceptual hash string of the photo"""
     source: str
-    data: Image
+    """The name of the original photo"""
+    data: Image.Image
+    """A representation of the photo as a `PIL.Image.Image`"""
 
 
 class Database(chromadb.Collection):
     client: chromadb.PersistentClient
+    """The Chroma client object"""
+
     image_directory_path: pathlib.Path
-    """The working directory of Chroma DB."""
+    """The working directory of Chroma."""
 
     # different collections
     # one for textual search, one for duplicate search
     collection = chromadb.Collection
     """Collection used for vector search."""
     phash_collection = chromadb.Collection
+    """Collection used for binning the ids of duplicate photos"""
 
     def __init__(self, path: pathlib.Path | None) -> None:
+        """
+        :param path: the directory for the `Database` to work within.
+        """
         embedding_function = OpenCLIPEmbeddingFunction()
         image_loader = ImageLoader()
 
@@ -68,12 +82,22 @@ class Database(chromadb.Collection):
             self.image_directory_path.mkdir()
 
     def add_images_from_directory(self, photo_dir: pathlib.Path):
+        """
+        Walks a directory and adds any images into the system.
+
+        :param photo_dir: the directory of the images to add.
+        """
         from .util import walk
 
         for filepath in walk(photo_dir):
             self.add_image(filepath)
 
     def add_image(self, filepath: pathlib.Path):
+        """
+        Adds the image at the filepath into the system
+
+        :param filepath: the path of the image to add.
+        """
         try:
             image = Image.open(filepath)
         # file isn't an image
@@ -147,7 +171,12 @@ class Database(chromadb.Collection):
         )
 
     def query_with_text(self, prompt: str, limit: int = 6) -> list[Photo]:
-        """Returns photos most relevant to the text prompt."""
+        """
+        Returns photos most relevant to the text prompt.
+
+        :param prompt: the textual query.
+        :param limit: an integer limit for how many `Photo`s to return.
+        """
         results = self.collection.query(
             query_texts=prompt, include=["metadatas", "data"], n_results=limit
         )
@@ -165,7 +194,12 @@ class Database(chromadb.Collection):
         return photos
 
     def query_with_photo(self, photo: Photo, limit: int = 6) -> list[Photo]:
-        """Returns most similar photos, including duplicates."""
+        """
+        Returns most similar photos, including duplicates.
+
+        :param photo: the `Photo` to serve as the query.
+        :param limit: an integer limit for how many `Photo`s to return.
+        """
         results = self.collection.query(
             query_images=np.array(photo.data.convert("RGB")),
             include=["metadatas", "data"],
@@ -185,7 +219,11 @@ class Database(chromadb.Collection):
         return photos
 
     def scan_duplicates_for_photo(self, photo: Photo) -> list[Photo]:
-        """Returns exact perceptual duplicates of the photo."""
+        """
+        Returns exact perceptual duplicates of the photo.
+
+        :param photo: the `Photo` to serve as the query.
+        """
         results = self.phash_collection.get(ids=photo.perceptual_hash)
 
         # get ids from metadata
@@ -209,7 +247,10 @@ class Database(chromadb.Collection):
         return photos
 
     def scan_duplicates(self) -> list[list[Photo]]:
-        """Returns bins of duplicate photos. Bins containing only one photo will not be included."""
+        """
+        Returns bins of duplicate photos.
+        *Note*: Bins containing only one photo will not be included.
+        """
         results = self.phash_collection.get(where={"count": {"$gt": 1}})
         N = len(results["ids"])
         bins = [None] * N
@@ -239,6 +280,11 @@ class Database(chromadb.Collection):
         return bins
 
     def delete_images(self, photos: Photo | list[Photo]):
+        """
+        Deletes photos from the system.
+
+        :param photo: can either be a single or list of `Photo`s. Data will be deleted from the system using the `Photo.id` field.
+        """
         if isinstance(photos, Photo):
             photos = [photos]
 
@@ -276,7 +322,11 @@ class Database(chromadb.Collection):
         )
 
     def get_all_images(self, sorted: bool = False) -> list[Photo]:
-        """Returns a list of photos, sorted by the time they were created."""
+        """
+        Returns a list of photos, sorted by the time they were created.
+
+        :param sorted: whether or not to sort the photos by time before returning.
+        """
         results = self.collection.get()
         # convert to `Photo` class
         N = len(results["ids"])
