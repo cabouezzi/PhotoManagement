@@ -98,15 +98,6 @@ class Database(chromadb.Collection):
 
         return photos
 
-
-    def add_image(self, filepath: pathlib.Path) -> Photo:
-        '''
-        Add an image to the database.
-        Also generates any required information. 
-
-        Returns the a Photo object
-        '''
-
     def add_image(self, filepath: pathlib.Path):
         """
         Adds the image at the filepath into the system
