@@ -52,8 +52,6 @@ class HandleImageDPG:
             # height=int(dpg.get_item_height("texture_tag") * 0.4),
         )
         print("done updating")
-    def save_img(self, image):
-        
 
     def texture_to_data(self, image):
         auxImg = cv2.cvtColor(image, cv2.COLOR_RGB2BGRA)
