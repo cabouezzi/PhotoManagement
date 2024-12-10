@@ -72,8 +72,6 @@ class Database(chromadb.Collection):
         Adds all images from a directory to the database.
         Also generates any required information. 
 
-        Throws IOError if a filepath does not lead to an image.
-        All images before the IOError will be inserted into the database
         Returns a list of the photos.
         '''
 
@@ -92,7 +90,6 @@ class Database(chromadb.Collection):
         Add an image to the database.
         Also generates any required information. 
 
-        Throws IOError if filepath does not lead to an image.
         Returns the a Photo object
         '''
 
@@ -100,8 +97,7 @@ class Database(chromadb.Collection):
             image = Image.open(filepath)
         # file isn't an image
         except IOError as e:
-            logging.exception(f"Exception when adding image by path: {filepath}")
-            raise e
+            logging.exception(f"Exception when adding image @ {filepath}: {e}")
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
