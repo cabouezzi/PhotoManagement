@@ -23,11 +23,15 @@ class TestDatabaseConfig(unittest.TestCase):
         cls.database = Database(path=cls.WORKING_PATH)
 
     @classmethod
-    def tearDownClass(self) -> None:
-        try:
-            self.database.delete_images(self.ids_uploaded)
-        except ValueError as e:
-            logging.warning(f"No entries in delete! {e}")
+    def tearDownClass(cls) -> None:
+        # https://stackoverflow.com/questions/76518144/trouble-deleting-chromadb-documents
+        from chromadb.api.client import SharedSystemClient
+        cls.database.client._system.stop()
+        SharedSystemClient._identifier_to_system.pop(cls.database.client._identifier, None)
+
+        import shutil
+        cls.database = None
+        shutil.rmtree(cls.WORKING_PATH)
 
     def test_database_pings(self):
         self.assertTrue(self.database.client.heartbeat())
@@ -46,11 +50,16 @@ class TestDatabaseCRUD(unittest.TestCase):
         cls.database = Database(path=cls.WORKING_PATH)
     
     @classmethod
-    def tearDownClass(self) -> None:
-        try:
-            self.database.delete_images(self.photos_uploaded)
-        except ValueError as e:
-            logging.warning(f"No entries in delete! {e}")
+    def tearDownClass(cls) -> None:
+        # https://stackoverflow.com/questions/76518144/trouble-deleting-chromadb-documents
+        from chromadb.api.client import SharedSystemClient
+        cls.database.client._system.stop()
+        SharedSystemClient._identifier_to_system.pop(cls.database.client._identifier, None)
+
+        import shutil
+        cls.database = None
+        shutil.rmtree(cls.WORKING_PATH)
+        
     
     def test_add_image0(self):
         test_image_path = self.TEST_DATA_PATH / f"image.jpg"
@@ -144,11 +153,15 @@ class TestDatabaseQUERY(unittest.TestCase):
         cls.database = Database(path=cls.WORKING_PATH)
     
     @classmethod
-    def tearDownClass(self) -> None:
-        try:
-            self.database.delete_images(self.photos_uploaded)
-        except ValueError as e:
-            logging.warning(f"No entries in delete! {e}")
+    def tearDownClass(cls) -> None:
+        # https://stackoverflow.com/questions/76518144/trouble-deleting-chromadb-documents
+        from chromadb.api.client import SharedSystemClient
+        cls.database.client._system.stop()
+        SharedSystemClient._identifier_to_system.pop(cls.database.client._identifier, None)
+
+        import shutil
+        cls.database = None
+        shutil.rmtree(cls.WORKING_PATH)
         
     def test_query_with_text0(self):
         test_image_path = self.TEST_DATA_PATH / "eyes" / "eyesclosed.jpg"
