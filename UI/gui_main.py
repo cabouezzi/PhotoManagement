@@ -43,9 +43,11 @@ File Handler
 
 def speak(sender, app_data, user_data):
     print("speaking")
+    dpg.disable_item("spe")
     desc = speech.speak_stream(user_data)
     db.update_photo(user_data, desc)
     print(desc)
+    dpg.enable_item("spe")
 
 
 def delete_img(sender, app_data, user_data):
@@ -178,13 +180,13 @@ def extra_fn(sender, app_data, user_data):
             tag="edit",
         )
         dpg.add_button(
-            label="Find Duplicates",
+            label="Find Similar",
             callback=find_duplicates,
             user_data=p,
             tag="dup",
         )
         dpg.add_button(
-            label="Find Identical",
+            label="Find Duplicate",
             callback=find_identical,
             user_data=p,
             tag="ide",
@@ -355,10 +357,10 @@ def main():
                                 )
         with dpg.group(horizontal=True, tag="info_window_group"):
             dpg.add_child_window(
-                pos=(dpg.get_viewport_width() - 400, 30),
+                pos=(dpg.get_viewport_width() - 500, 30),
                 tag="info_window",
                 parent="info_window_group",
-                width=400,
+                width=500,
                 horizontal_scrollbar=True,
             )
             dpg.add_texture_registry(tag="info_window_text_reg", show=False)
