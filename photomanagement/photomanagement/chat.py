@@ -1,5 +1,6 @@
 import ollama
 import pathlib
+from typing import Generator
 
 
 def convert_image_to_bytes(path: pathlib.Path) -> bytes:
@@ -27,5 +28,22 @@ class Chat:
         response = ollama.chat(model=self.model, messages=self.messages)
 
         reply = ollama.Message(response["message"])
+        self.messages.append(reply)
+        return reply
+
+    def invoke_stream(
+        self, prompt: str, images: list[bytes] = []
+    ) -> Generator[str, None, ollama.Message]:
+        """Prompts the model with a chat message nad returns a stream"""
+        invocation = ollama.Message(role="user", content=prompt, images=images)
+        self.messages.append(invocation)
+        stream = ollama.chat(model=self.model, messages=self.messages, stream=True)
+
+        reply = ""
+        for chunk in stream:
+            yield chunk["message"]["content"]
+            reply += " " + chunk["message"]["content"]
+
+        reply = ollama.Message(role="assistant", content=reply)
         self.messages.append(reply)
         return reply
