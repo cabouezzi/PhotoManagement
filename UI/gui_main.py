@@ -43,7 +43,6 @@ File Handler
 
 def speak(sender, app_data, user_data):
     print("speaking")
-    im = db.get(user_data.id)
     dpg.disable_item("spe")
     desc = speech.speak(user_data)
     print(desc)
