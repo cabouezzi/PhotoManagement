@@ -10,8 +10,8 @@ PIL images to dpg images
 """
 db = None
 speech = None
-# home_dir = pathlib.Path.home() / ".photomanagement"
-home_dir = "C:\\Users\\Owen\\code_anh\\PhotoManagement\\db"
+home_dir = pathlib.Path.home() / ".photomanagement"
+# home_dir = "C:\\Users\\Owen\\code_anh\\PhotoManagement\\db"
 
 
 def img_to_1D_arr(image):
@@ -45,8 +45,7 @@ def speak(sender, app_data, user_data):
     print("speaking")
     im = db.get(user_data.id)
     dpg.disable_item("spe")
-    desc = speech.speak(im)
-    db.update_photo(im, desc)
+    desc = speech.speak(user_data)
     print(desc)
     dpg.enable_item("spe")
 
