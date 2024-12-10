@@ -23,9 +23,15 @@ Link to demo [here](https://drive.google.com/file/d/1hcS5-gKFppm3sKZi9WeGxWMw2y1
 
 **Install dependencies with poetry:**
 
+```cd photomanagement```
+
 ```poetry lock```
 
 ```poetry install```
+
+Alternatively, you can install `photomanagement` as a package straight from the git repository, which will install dependencies as well.
+
+```pip install git+https://github.com/cabouezzi/PhotoManagement.git/#subdirectory=photomanagement```
 
 
 **Download Ollama for your OS:**
