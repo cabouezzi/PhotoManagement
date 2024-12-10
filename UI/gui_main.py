@@ -36,21 +36,6 @@ def img_to_1D_arr(image):
     return img_1D_arr
 
 
-# def image_to_dpg_texture(image, texture_registry):
-#     rgba_image = image.convert("RGBA")
-#     img_1d_array = img_to_1D_arr(rgba_image)
-#     dpg_texture_tag = dpg.add_static_texture(
-#         width=rgba_image.width,
-#         height=rgba_image.height,
-#         default_value=img_1d_array,
-#         parent=texture_registry,
-#     )
-
-#     rgba_image.close()
-#     del img_1d_array, rgba_image
-#     return dpg_texture_tag
-
-
 """
 File Handler
 """
@@ -63,76 +48,109 @@ def speak(sender, app_data, user_data):
     print(desc)
 
 
-# def print_userdata(_, _, user_data):
-#     # print(f"sender {sender}")
-#     # print(f"app_data {app_data}")
-#     # print(f"user_data {user_data}")
-#     if len(dpg.get_item_children("info_window")) > 0:
-#         dpg.delete_item("info_window", children_only=True)
-#     p = user_data
-#     with dpg.texture_registry():
-#         im_1D = img_to_1D_arr(p.data.convert("RGBA"))
-#         texture_tag = dpg.add_static_texture(
-#             width=p.data.width,
-#             height=p.data.height,
-#             default_value=im_1D,
-#         )
-#         dpg.add_image(texture_tag, parent="info_window")
-#         with dpg.group(parent="info_window"):
-#             dpg.add_text(f"Id: {p.id}")
-#             dpg.add_text(f"Title: {p.title}")
-#             dpg.add_text(f"Time Created: {p.time_created}")
-#             dpg.add_text(f"Time Last Modified: {p.time_last_modified}")
 def delete_img(sender, app_data, user_data):
-    db.delete_images(user_data["photo"])
+    print(f"sender is: {sender}")
+    print(f"app_data is: {app_data}")
+    print(f"user_data is: {user_data}")
     dpg.delete_item(user_data["tag"])
-    dpg.delete_item(user_data["sender"])
     dpg.delete_item("info_window", children_only=True)
+    dpg.delete_item(user_data["sender"])
+    dpg.delete_item(user_data["photo"].id)
+    db.delete_images(user_data["photo"])
+    # refresh()
+
+
+def render_results(photos):
+    if dpg.does_item_exist("result_window"):
+        dpg.delete_item("result_window")
+    dpg.add_window(label="Results", width=500, height=500, tag="result_window")
+    with dpg.texture_registry():
+        for photo in photos:
+            im_1D = img_to_1D_arr(photo.data.convert("RGBA"))
+            texture_tag = dpg.add_static_texture(
+                width=photo.data.width,
+                height=photo.data.height,
+                default_value=im_1D,
+            )
+            dpg.add_image_button(
+                texture_tag,
+                parent="result_window",
+                callback=extra_fn,
+                user_data={"photo": photo},
+            )
 
 
 def find_duplicates(sender, app_data, user_data):
     p = user_data
     resulted_photos = db.query_with_photo(photo=p)
-    with dpg.window(label="Results", width=500, height=500) as res:
-        with dpg.texture_registry():
-            for res_photo in resulted_photos:
-                im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
-                texture_tag = dpg.add_static_texture(
-                    width=res_photo.data.width,
-                    height=res_photo.data.height,
-                    default_value=im_1D,
-                )
-                img_tag = dpg.add_image_button(
-                    texture_tag,
-                    parent=res,
-                    callback=extra_fn,
-                    user_data=res_photo,
-                )
+    # with dpg.window(label="Results", width=500, height=500) as res:
+    #     with dpg.texture_registry():
+    #         for res_photo in resulted_photos:
+    #             im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+    #             texture_tag = dpg.add_static_texture(
+    #                 width=res_photo.data.width,
+    #                 height=res_photo.data.height,
+    #                 default_value=im_1D,
+    #             )
+    #             dpg.add_image_button(
+    #                 texture_tag,
+    #                 parent=res,
+    #                 callback=extra_fn,
+    #                 user_data={"photo": res_photo},
+    #             )
+    render_results(resulted_photos)
 
 
 def find_identical(sender, app_data, user_data):
     p = user_data
     resulted_photos = db.scan_duplicates_for_photo(photo=p)
-    with dpg.window(label="Results", width=500, height=500) as res:
-        for res_photo in resulted_photos:
-            im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
-            texture_tag = dpg.add_static_texture(
-                width=res_photo.data.width,
-                height=res_photo.data.height,
-                default_value=im_1D,
-            )
-            img_tag = dpg.add_image_button(
-                texture_tag,
-                parent=res,
-                callback=extra_fn,
-                user_data=res_photo,
-            )
+    # with dpg.window(label="Results", width=500, height=500) as res:
+    #     with dpg.texture_registry():
+    #         for res_photo in resulted_photos:
+    #             im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+    #             texture_tag = dpg.add_static_texture(
+    #                 width=res_photo.data.width,
+    #                 height=res_photo.data.height,
+    #                 default_value=im_1D,
+    #             )
+    #             img_tag = dpg.add_image_button(
+    #                 texture_tag,
+    #                 parent=res,
+    #                 callback=extra_fn,
+    #                 user_data={"photo": res_photo},
+    #             )
+    render_results(resulted_photos)
+
+
+def search_photo(sender, app_data):
+    # with dpg.item_handler_registry() as search_handler_reg:
+    #     dpg.add_item_double_clicked_handler(callback=print_userdata)
+    resulted_photos = db.query_with_text(app_data)
+    # with dpg.window(label="Results", width=500, height=500) as res:
+    #     with dpg.texture_registry():
+    #         for res_photo in resulted_photos:
+    #             im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+    #             texture_tag = dpg.add_static_texture(
+    #                 width=res_photo.data.width,
+    #                 height=res_photo.data.height,
+    #                 default_value=im_1D,
+    #             )
+    #             img_tag = dpg.add_image_button(
+    #                 texture_tag,
+    #                 parent=res,
+    #                 callback=extra_fn,
+    #                 user_data={"photo": res_photo},
+    #             )
+    #             # dpg.bind_item_handler_registry(
+    #             #     img_tag, search_handler_reg
+    #             # )
+    render_results(resulted_photos)
 
 
 def extra_fn(sender, app_data, user_data):
     if len(dpg.get_item_children("info_window")) > 0:
         dpg.delete_item("info_window", children_only=True)
-    p = user_data
+    p = user_data["photo"]
     with dpg.texture_registry():
         im_1D = img_to_1D_arr(p.data.convert("RGBA"))
         texture_tag = dpg.add_static_texture(
@@ -146,69 +164,49 @@ def extra_fn(sender, app_data, user_data):
             dpg.add_text(f"Title: {p.title}")
             dpg.add_text(f"Time Created: {p.time_created}")
             dpg.add_text(f"Time Last Modified: {p.time_last_modified}")
-    photo = user_data
     with dpg.group(parent="info_window", horizontal=True):
         dpg.add_separator()
         dpg.add_button(
             label="Edit",
-            user_data=photo.data.filename,
+            user_data=p.data.filename,
             callback=choose_img_callback,
+            tag="edit",
         )
         dpg.add_button(
             label="Find Duplicates",
             callback=find_duplicates,
-            user_data=photo,
+            user_data=p,
+            tag="dup",
         )
         dpg.add_button(
             label="Find Identical",
             callback=find_identical,
-            user_data=photo,
+            user_data=p,
+            tag="ide",
         )
     with dpg.group(parent="info_window", horizontal=True):
-        dpg.add_button(label="Speak", callback=speak, user_data=photo)
+        dpg.add_button(label="Speak", callback=speak, user_data=p, tag="spe")
         dpg.add_button(
             label="Delete",
             callback=delete_img,
-            user_data={"photo": photo, "tag": img_tag, "sender": sender},
+            user_data={"photo": p, "tag": img_tag, "sender": sender},
+            tag="del",
         )
-
-
-def search_photo(sender, app_data):
-    # with dpg.item_handler_registry() as search_handler_reg:
-    #     dpg.add_item_double_clicked_handler(callback=print_userdata)
-    resulted_photos = db.query_with_text(app_data)
-    with dpg.window(label="Results", width=500, height=500) as res:
-        with dpg.texture_registry():
-            for res_photo in resulted_photos:
-                im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
-                texture_tag = dpg.add_static_texture(
-                    width=res_photo.data.width,
-                    height=res_photo.data.height,
-                    default_value=im_1D,
-                )
-                img_tag = dpg.add_image_button(
-                    texture_tag,
-                    parent=res,
-                    callback=extra_fn,
-                    user_data=res_photo,
-                )
-                # dpg.bind_item_handler_registry(
-                #     img_tag, search_handler_reg
-                # )
 
 
 def choose_dir_callback(sender, app_data):
     dir_path = app_data["file_path_name"]
     db.add_images_from_directory(dir_path)
     load_img_chosen()
-    # db = Database(dir_path)
-    # print(app_data)
 
 
 def load_img_chosen():
-    photos = db.query_with_text("hi")
+    photos = db.get_all_images()
+    loading = dpg.add_loading_indicator(parent="image_group")
     with dpg.texture_registry():
         for photo in photos:
+            if dpg.does_item_exist(photo.id):
+                continue
             im_1D = img_to_1D_arr(photo.data.convert("RGBA"))
             texture_tag = dpg.add_static_texture(
                 width=photo.data.width,
@@ -220,9 +218,36 @@ def load_img_chosen():
                 texture_tag,
                 parent="image_group",
                 callback=extra_fn,
-                user_data=photo,
+                tag=photo.id,
+                user_data={"photo": photo},
             )
     dpg.set_item_callback("search_box", callback=search_photo)
+    dpg.delete_item(loading)
+
+
+def refresh():
+    dpg.delete_item("main_texture_registry", children_only=True)
+    dpg.delete_item("info_window", children_only=True)
+    dpg.delete_item("image_group", children_only=True)
+    loading = dpg.add_loading_indicator(parent="image_group")
+    photos = db.get_all_images()
+    for photo in photos:
+        im_1D = img_to_1D_arr(photo.data.convert("RGBA"))
+        texture_tag = dpg.add_static_texture(
+            width=photo.data.width,
+            height=photo.data.height,
+            default_value=im_1D,
+            parent="main_texture_registry",
+        )
+        dpg.add_image_button(
+            texture_tag,
+            parent="image_group",
+            callback=extra_fn,
+            user_data={
+                "photo": photo,
+            },
+        )
+    dpg.delete_item(loading)
 
 
 """
@@ -287,10 +312,6 @@ def main():
     ):
         with dpg.menu_bar():
             with dpg.menu(label="File"):
-                # dpg.add_button(
-                #     label="Edit Image ...",
-                #     callback=lambda: dpg.show_item("image_dialog"),
-                # )
                 dpg.add_button(
                     label="Open Photo Directory ...",
                     callback=lambda: dpg.show_item("dir_dialog"),
@@ -318,10 +339,13 @@ def main():
                                 )
                                 dpg.add_image_button(
                                     texture_tag,
+                                    parent="image_group",
                                     callback=extra_fn,
-                                    user_data=photo,
+                                    tag=photo.id,
+                                    user_data={
+                                        "photo": photo,
+                                    },
                                 )
-
         with dpg.group(horizontal=True, tag="info_window_group"):
             dpg.add_child_window(
                 pos=(dpg.get_viewport_width() - 400, 30),
