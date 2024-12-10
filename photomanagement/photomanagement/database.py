@@ -276,3 +276,11 @@ class Database(chromadb.Collection):
         self.phash_collection.upsert(
             entries["ids"], embeddings=entries["embeddings"], metadatas=bins
         )
+    def update_photo(self, photo: Photo, description: str):
+        if not isinstance(description, str):
+            raise ValueError("photo description must be string")
+
+        self.collection.update(
+            id=[photo.id],
+            metadatas=[{"description": description}],
+        )
