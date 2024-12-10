@@ -193,8 +193,8 @@ class Database(chromadb.Collection):
             metadata = results["metadatas"][0][i]
             id = results["ids"][0][i]
             image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
-            with Image.open(image_path) as image_data:
-                photos[i] = Photo(id=id, **metadata, data=image_data)
+            image_data = Image.open(image_path)
+            photos[i] = Photo(id=id, **metadata, data=image_data)
             
 
         return photos
