@@ -83,7 +83,7 @@ class Database(chromadb.Collection):
         # step 1: add to directory of images
         id = str(uuid.uuid4())
         controlled_path = self.image_directory_path / f"{id}.png"
-        image.save(controlled_path, format="PNG")
+        image.save(controlled_path, format="PNG", exif=image.info.get("exif"))
 
         # step 2: add properties to chroma
         # file metadata
@@ -264,8 +264,6 @@ class Database(chromadb.Collection):
 
         for i in range(len(bins)):
             for id in ids:
-                print(bins[i])
-                print(id)
                 if id in bins[i]:
                     del bins[i][id]
                     bins[i]["count"] -= 1
@@ -276,3 +274,20 @@ class Database(chromadb.Collection):
         self.phash_collection.upsert(
             entries["ids"], embeddings=entries["embeddings"], metadatas=bins
         )
+
+    def get_all_images(self, sorted: bool = False) -> list[Photo]:
+        """Returns a list of photos, sorted by the time they were created."""
+        results = self.collection.get()
+        # convert to `Photo` class
+        N = len(results["ids"])
+        photos = [None] * N
+        for i in range(N):
+            metadata = results["metadatas"][i]
+            id = results["ids"][i]
+            image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
+            image_data = Image.open(image_path)
+            photos[i] = Photo(id=id, **metadata, data=image_data)
+
+        if sorted:
+            photos.sort(key=lambda photo: photo.time_created)
+        return photos
