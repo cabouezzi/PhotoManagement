@@ -3,7 +3,7 @@ import pathlib
 from photomanagement import *
 from PIL import Image
 
-class TestSpeech(unittest.TestCase):
+class TestUpdate(unittest.TestCase):
     WORKING_PATH = pathlib.Path("./test-speech")
     TEST_DATA_PATH = pathlib.Path(__file__).parent.parent / "images" / "animal_images"
     database: Database
