@@ -59,11 +59,38 @@ File Handler
 
 def speak(sender, app_data, user_data):
     desc = speech.speak(user_data)
+    db.update_photo(user_data, desc)
     print(desc)
 
 
+def print_userdata(sender, app_data, user_data):
+    print(f"sender {sender}")
+    print(f"app_data {app_data}")
+    print(f"user_data {user_data}")
+
+
 def search_photo(sender, app_data):
-    db.query_with_text(app_data)
+    # with dpg.item_handler_registry() as search_handler_reg:
+    #     dpg.add_item_double_clicked_handler(callback=print_userdata)
+    resulted_photos = db.query_with_text(app_data)
+    with dpg.window(label="Results") as res:
+        with dpg.texture_registry():
+            for res_photo in resulted_photos:
+                im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+                texture_tag = dpg.add_static_texture(
+                    width=res_photo.data.width,
+                    height=res_photo.data.height,
+                    default_value=im_1D,
+                )
+                img_tag = dpg.add_image_button(
+                    texture_tag,
+                    parent=res,
+                    callback=print_userdata,
+                    user_data=res_photo,
+                )
+                # dpg.bind_item_handler_registry(
+                #     img_tag, search_handler_reg
+                # )
 
 
 def choose_dir_callback(sender, app_data):
@@ -92,7 +119,7 @@ def load_all_img(path):
                     user_data=photo.data.filename,
                     callback=choose_img_callback,
                 )
-                dpg.add_button(label="Speak", user_data=photo)
+                dpg.add_button(label="Speak", user_data=photo, callback=speak)
     dpg.set_item_callback("search_box", callback=search_photo)
 
 
