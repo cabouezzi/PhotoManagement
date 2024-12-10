@@ -58,6 +58,7 @@ File Handler
 
 
 def speak(sender, app_data, user_data):
+    print("speaking")
     desc = speech.speak(user_data)
     db.update_photo(user_data, desc)
     print(desc)
@@ -208,7 +209,7 @@ def choose_dir_callback(sender, app_data):
 def load_all_img(path):
     db.add_images_from_directory(path)
     photos = db.query_with_text("hi")
-    with dpg.texture_registry() as text_reg:
+    with dpg.texture_registry():
         for photo in photos:
             im_1D = img_to_1D_arr(photo.data.convert("RGBA"))
             texture_tag = dpg.add_static_texture(
