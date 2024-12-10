@@ -7,7 +7,7 @@ import pathlib
 
 
 class TestHash(unittest.TestCase):
-    WORKING_PATH = pathlib.Path("./test-textual-search")
+    WORKING_PATH = pathlib.Path("./test-hash")
     TEST_DATA_PATH = (
         pathlib.Path(__file__).parent.parent / "images" / "duplicate-images"
     )

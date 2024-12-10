@@ -5,6 +5,7 @@ import photomanagement.chat
 
 class TestChat(unittest.TestCase):
 
+    @unittest.skip("This test invokes the LLM 5 times and will take a while.")
     def test_image_description(self):
         from .util import semscore
 
@@ -38,4 +39,7 @@ class TestChat(unittest.TestCase):
         # chat.model = "llava-llama3"
         chat.invoke("My name is Jamaica")
         response = chat.invoke("What is my name?")
-        self.assertTrue("Jamaica" in response["content"])
+        self.assertTrue(
+            "Jamaica" in response["content"],
+            "LLM responded with:\n\t" + response["content"],
+        )
