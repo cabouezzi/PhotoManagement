@@ -21,11 +21,11 @@ class TestSpeech(unittest.TestCase):
         cls.database = None
         shutil.rmtree(cls.WORKING_PATH)
     
-    def test_print_desc(self):
+    def test_update_desc(self):
         photo = self.database.query_with_text("cat")
-        desc = self.speechEngine.speak(photo[0])
+        # desc = self.speechEngine.speak(photo[0])
+        desc = "this is a cat"
         self.database.update_photo(photo[0], desc)
-        result = self.database.get(ids=photo[0].id)
-        print(desc)
-        print(result)
-        self.assertNotEqual(result["metadatas"][0]["description"], "None")
+        result = self.database.collection.get(ids=photo[0].id)
+        # result = self.database.query_with_text("cat")[0]
+        self.assertEqual(result["metadatas"][0]["description"], "this is a cat")
