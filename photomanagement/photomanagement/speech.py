@@ -31,3 +31,35 @@ class Speech:
         
         self.engine.say(text)
         self.engine.runAndWait()
+
+        return text
+
+    def speak_stream(self, photo: Photo):
+        """
+        Uses pyttsx3 to say the provided text.
+        :param text: The string to be read aloud.
+        """
+        if not isinstance(photo, Photo):
+            raise ValueError("input must be a Photo")
+        
+        text = photo.description
+
+        if text == "None":
+            response = ""
+            chat = Chat()
+
+            chunk = []
+            for word in chat.invoke_stream(prompt="Describe this photo in one sentence.", images=[photo.data.filename]):
+                chunk.append(word)
+                if len(chunk) == 5:
+                    self.engine.say(" ".join(chunk))
+                    self.engine.runAndWait()
+                    chunk = []
+                response += " " + word
+            photo.description = response
+            text = photo.description
+
+        if not isinstance(text, str):
+            raise ValueError("photo description is empty or is not a string")
+        
+        return text
