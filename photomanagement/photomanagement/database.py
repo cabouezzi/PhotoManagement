@@ -50,7 +50,7 @@ class Database(chromadb.Collection):
 
         self.image_directory_path = path / "images"
         self.client = chromadb.PersistentClient(
-            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False)
+            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False, )
         )
 
         self.collection = self.client.create_collection(
@@ -67,18 +67,37 @@ class Database(chromadb.Collection):
         if not self.image_directory_path.exists():
             self.image_directory_path.mkdir()
 
-    def add_images_from_directory(self, photo_dir: pathlib.Path):
+    def add_images_from_directory(self, photo_dir: pathlib.Path) -> list[Photo]:
+        '''
+        Adds all images from a directory to the database.
+        Also generates any required information. 
+
+        Returns a list of the photos.
+        '''
+
+        photos = []
+        
         from .util import walk
 
         for filepath in walk(photo_dir):
-            self.add_image(filepath)
+            photos.append(self.add_image(filepath))
 
-    def add_image(self, filepath: pathlib.Path):
+        return photos
+
+
+    def add_image(self, filepath: pathlib.Path) -> Photo:
+        '''
+        Add an image to the database.
+        Also generates any required information. 
+
+        Returns the a Photo object
+        '''
+
         try:
             image = Image.open(filepath)
         # file isn't an image
-        except IOError:
-            return
+        except IOError as e:
+            logging.exception(f"Exception when adding image @ {filepath}: {e}")
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
@@ -98,9 +117,9 @@ class Database(chromadb.Collection):
             elif "36868" in exif:
                 time_created = exif["36868"]
             else:
-                time_created = time.ctime(file_stat.st_ctime)
+                time_created = time.ctime(file_stat.st_birthtime)
         else:
-            time_created = time.ctime(file_stat.st_ctime)
+            time_created = time.ctime(file_stat.st_birthtime)
 
         # TODO: LLM stuff takes way too long, consider moving to background thread or just ditch description entirely
         description = "None"
@@ -108,11 +127,21 @@ class Database(chromadb.Collection):
         raw_hash = perceptual_hash(image)
         hash = hash_to_str(raw_hash)
 
+        photo = Photo(
+            id=id,
+            title=filepath.name[:-4],
+            time_created=time_created,
+            time_last_modified=last_modified_time,
+            perceptual_hash=hash,
+            description=description,
+            source=str(filepath),
+            data=np.array(image.convert("RGB"))
+        )
         self.collection.add(
             ids=id,
             images=np.array(image.convert("RGB")),
             metadatas={
-                "title": "title",
+                "title": filepath.name[:-4],
                 "time_created": time_created,
                 "time_last_modified": last_modified_time,
                 "perceptual_hash": hash,
@@ -146,8 +175,13 @@ class Database(chromadb.Collection):
             metadatas=source_ids,
         )
 
+        image.close()
+        return photo
+
     def query_with_text(self, prompt: str, limit: int = 6) -> list[Photo]:
-        """Returns photos most relevant to the text prompt."""
+        """
+        Query the database for up to *limit* *images* that are most relevent to the prompt.
+        """
         results = self.collection.query(
             query_texts=prompt, include=["metadatas", "data"], n_results=limit
         )
@@ -161,6 +195,7 @@ class Database(chromadb.Collection):
             image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
             image_data = Image.open(image_path)
             photos[i] = Photo(id=id, **metadata, data=image_data)
+            
 
         return photos
 
@@ -238,10 +273,13 @@ class Database(chromadb.Collection):
 
         return bins
 
-    def delete_images(self, photos: Photo | list[Photo]):
+    def delete_images(self, photos: Photo | list[Photo]) -> None:
         if isinstance(photos, Photo):
             photos = [photos]
 
+        if len(photos) == 0:
+            raise ValueError
+        
         ids = [photo.id for photo in photos]
 
         # remove from images directory
@@ -258,7 +296,7 @@ class Database(chromadb.Collection):
         self.collection.delete(ids=ids)
 
         # remove from duplicate collection
-        hashes = [photo.perceptual_hash for photo in photos]
+        hashes = list(set([photo.perceptual_hash for photo in photos]))
         entries = self.phash_collection.get(hashes, include=["embeddings", "metadatas"])
         bins = entries["metadatas"]
 
