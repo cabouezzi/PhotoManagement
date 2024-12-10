@@ -50,7 +50,7 @@ class Database(chromadb.Collection):
 
         self.image_directory_path = path / "images"
         self.client = chromadb.PersistentClient(
-            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False)
+            path=str(path), settings=chromadb.Settings(anonymized_telemetry=False, )
         )
 
         self.collection = self.client.create_collection(
@@ -68,17 +68,35 @@ class Database(chromadb.Collection):
             self.image_directory_path.mkdir()
 
     def add_images_from_directory(self, photo_dir: pathlib.Path):
+        '''
+        Adds all images from a directory to the database.
+        Also generates any required information. 
+
+        Throws IOError if a filepath does not lead to an image.
+        All images before the IOError will be inserted into the database
+        Returns a list of all ids added
+        '''
+
         from .util import walk
 
         for filepath in walk(photo_dir):
             self.add_image(filepath)
 
-    def add_image(self, filepath: pathlib.Path):
+    def add_image(self, filepath: pathlib.Path) -> str:
+        '''
+        Add an image to the database.
+        Also generates any required information. 
+
+        Throws IOError if filepath does not lead to an image.
+        Returns the id of the image
+        '''
+
         try:
             image = Image.open(filepath)
         # file isn't an image
-        except IOError:
-            return
+        except IOError as e:
+            logging.exception(f"Exception when adding image by path: {filepath}")
+            raise e
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
@@ -98,9 +116,9 @@ class Database(chromadb.Collection):
             elif "36868" in exif:
                 time_created = exif["36868"]
             else:
-                time_created = time.ctime(file_stat.st_ctime)
+                time_created = time.ctime(file_stat.st_birthtime)
         else:
-            time_created = time.ctime(file_stat.st_ctime)
+            time_created = time.ctime(file_stat.st_birthtime)
 
         # TODO: LLM stuff takes way too long, consider moving to background thread or just ditch description entirely
         description = "None"
@@ -112,7 +130,7 @@ class Database(chromadb.Collection):
             ids=id,
             images=np.array(image.convert("RGB")),
             metadatas={
-                "title": "title",
+                "title": filepath.name[:-4],
                 "time_created": time_created,
                 "time_last_modified": last_modified_time,
                 "perceptual_hash": hash,
@@ -146,8 +164,12 @@ class Database(chromadb.Collection):
             metadatas=source_ids,
         )
 
+        return id
+
     def query_with_text(self, prompt: str, limit: int = 6) -> list[Photo]:
-        """Returns photos most relevant to the text prompt."""
+        """
+        Query the database for up to *limit* *images* that are most relevent to the prompt.
+        """
         results = self.collection.query(
             query_texts=prompt, include=["metadatas", "data"], n_results=limit
         )
@@ -238,10 +260,13 @@ class Database(chromadb.Collection):
 
         return bins
 
-    def delete_images(self, photos: Photo | list[Photo]):
+    def delete_images(self, photos: Photo | list[Photo]) -> None:
         if isinstance(photos, Photo):
             photos = [photos]
 
+        if len(photos) == 0:
+            raise ValueError
+        
         ids = [photo.id for photo in photos]
 
         # remove from images directory
