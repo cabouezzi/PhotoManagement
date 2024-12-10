@@ -10,6 +10,7 @@ curr_img = None
 class HandleImageDPG:
     def __init__(self) -> None:
         self.rgb_img = None  # Do not change this value after init
+        self.result = None
 
     def cv2_open_img(self, path):
         with open(path, "rb") as stream:
@@ -33,6 +34,7 @@ class HandleImageDPG:
         hsv_img = self.set_hsv(image=bc_img)
         sharp = self.set_sharp(hsv_img)
         blur_img = self.blur(sharp)
+        self.result = blur_img
         textureData = self.texture_to_data(blur_img)
         self.delete_texture()
         dpg.add_static_texture(
@@ -50,6 +52,8 @@ class HandleImageDPG:
             # height=int(dpg.get_item_height("texture_tag") * 0.4),
         )
         print("done updating")
+    def save_img(self, image):
+        
 
     def texture_to_data(self, image):
         auxImg = cv2.cvtColor(image, cv2.COLOR_RGB2BGRA)

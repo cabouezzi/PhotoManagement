@@ -1,46 +1,63 @@
 import dearpygui.dearpygui as dpg
+from edit_cv import HandleImageDPG
+
+"""
+File Handler
+"""
 
 
-# def load_image(path):
-#     try:
-#         # when there is path
-#         if dpg.get_value("img_path") != "Path ":
-#             print("img already exist")
-#             # width, height, channels, data = dpg.load_image(path)
-#             dpg.delete_item("texture_tag")
-#             dpg.remove_alias("texture_tag")
-#             dpg.delete_item("texture_registry")
-#             dpg.delete_item("image_tag")
-#         with dpg.texture_registry(show=True, tag="texture_registry"):
-#             handle_img_obj = HandleImageDPG()
-#             rgba_img = handle_img_obj.cv2_open_img(path)
-#             cv2_data = handle_img_obj.texture_to_data(rgba_img)
-#             dpg.add_static_texture(
-#                 width=rgba_img.shape[1],
-#                 height=rgba_img.shape[0],
-#                 default_value=cv2_data,
-#                 tag="texture_tag",
-#             )
-#             dpg.add_image(
-#                 "texture_tag",
-#                 parent="img_window",
-#                 tag="image_tag",
-#             )
-#         dpg.set_value("img_path", value=f"Path {path}")
-#         dpg.set_item_callback("apply_btn", handle_img_obj.update_texture)
-#         # create_widget_group(handle_img_obj)
-#         return handle_img_obj
-#     except ValueError:
-#         print("cannot load file. path does not exist")
+def load_image(path):
+    try:
+        # when there is path
+        if dpg.get_value("img_path") != "Path ":
+            print("img already exist")
+            # width, height, channels, data = dpg.load_image(path)
+            dpg.delete_item("texture_tag")
+            dpg.remove_alias("texture_tag")
+            dpg.delete_item("texture_registry")
+            dpg.delete_item("image_tag")
+        with dpg.texture_registry(show=False, tag="texture_registry"):
+            handle_img_obj = HandleImageDPG()
+            rgba_img = handle_img_obj.cv2_open_img(path)
+            cv2_data = handle_img_obj.texture_to_data(rgba_img)
+            dpg.add_static_texture(
+                width=rgba_img.shape[1],
+                height=rgba_img.shape[0],
+                default_value=cv2_data,
+                tag="texture_tag",
+            )
+            dpg.add_image(
+                "texture_tag",
+                parent="img_window",
+                tag="image_tag",
+            )
+        dpg.set_value("img_path", value=f"Path {path}")
+        dpg.set_item_callback("apply_btn", handle_img_obj.update_texture)
+        # create_widget_group(handle_img_obj)
+        return handle_img_obj
+    except ValueError:
+        print("cannot load file. path does not exist")
 
 
-# def choose_file_callback(sender, app_data):
-#     """
-#     Load image, adjust image path text, load widget groups
-#     """
-#     path = app_data["file_path_name"]
-#     # width, height, channels, data = dpg.load_image(path)
-#     load_image(path)
+def choose_img_callback(sender, app_data, user_data):
+    """
+    Load image, adjust image path text, load widget groups
+    """
+    print(app_data)
+    path = user_data
+    print(user_data)
+    if dpg.does_item_exist("photo_window"):
+        if not dpg.get_item_state("photo_window")["toggled_open"]:
+            cancel_img_callback()
+    edit_main()
+    load_image(path)
+
+
+def cancel_img_callback():
+    dpg.delete_item("widget_window_handler")
+    dpg.remove_alias("widget_window_handler")
+    dpg.delete_item("photo_window")
+    dpg.delete_item("texture_registry")
 
 
 """
@@ -139,6 +156,7 @@ def create_widget_group():
         dpg.add_button(
             label="Apply Changes", user_data="texture_tag", tag="apply_btn"
         )
+        dpg.add_button(label="Save Changes")
 
 
 """
@@ -148,7 +166,7 @@ Window Display and Resize Configuration
 
 def viewport_resize(sender, app_data):
     dpg.set_item_pos(
-        "widget_window", pos=(dpg.get_item_width("photo_window") - 400, 30)
+        "widget_window", pos=(dpg.get_item_width("photo_window") - 350, 30)
     )
 
 
@@ -157,18 +175,18 @@ def edit_main():
     # dpg.create_context()
     # dpg.create_viewport(title="Photo Management", resizable=True)
     # dpg.set_viewport_resize_callback(callback=viewport_resize)
-    with dpg.item_handler_registry(tag="widget_handler"):
+    with dpg.item_handler_registry(tag="widget_window_handler"):
         dpg.add_item_resize_handler(
             callback=lambda: dpg.set_item_pos(
                 "widget_window",
-                pos=(dpg.get_item_width("photo_window") - 310, 30),
+                pos=(dpg.get_item_width("photo_window") - 350, 30),
             )
         )
     with dpg.window(
         label="Photo",
         tag="photo_window",
-        width=1200,
-        height=700,
+        width=800,
+        height=600,
     ):
         # with dpg.menu_bar():
         #     with dpg.file_dialog(
@@ -177,7 +195,7 @@ def edit_main():
         #         callback=choose_file_callback,
         #         id="file_dialog",
         #         width=700,
-        #         height=400,
+        #         height=350,
         #     ):
         #         for file_extension in file_extensions:
         #             dpg.add_file_extension(
@@ -195,13 +213,13 @@ def edit_main():
                 dpg.add_text(default_value="Path ", tag="img_path")
         with dpg.group(horizontal=True, tag="widget_window_group"):
             dpg.add_child_window(
-                pos=(dpg.get_viewport_width() - 310, 30),
+                pos=(dpg.get_viewport_width() - 350, 30),
                 tag="widget_window",
                 parent="widget_window_group",
-                width=300,
+                width=350,
             )
             create_widget_group()
-    dpg.bind_item_handler_registry("photo_window", "widget_handler")
+    dpg.bind_item_handler_registry("photo_window", "widget_window_handler")
     # dpg.setup_dearpygui()
     # dpg.show_viewport()
     # dpg.start_dearpygui()
