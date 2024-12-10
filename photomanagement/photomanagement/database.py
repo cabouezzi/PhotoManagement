@@ -92,6 +92,7 @@ class Database(chromadb.Collection):
         """
         from .util import walk
 
+        photos = []
         for filepath in walk(photo_dir):
             photos.append(self.add_image(filepath))
 
