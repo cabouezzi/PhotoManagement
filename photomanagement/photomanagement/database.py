@@ -67,28 +67,33 @@ class Database(chromadb.Collection):
         if not self.image_directory_path.exists():
             self.image_directory_path.mkdir()
 
-    def add_images_from_directory(self, photo_dir: pathlib.Path):
+    def add_images_from_directory(self, photo_dir: pathlib.Path) -> list[Photo]:
         '''
         Adds all images from a directory to the database.
         Also generates any required information. 
 
         Throws IOError if a filepath does not lead to an image.
         All images before the IOError will be inserted into the database
-        Returns a list of all ids added
+        Returns a list of the photos.
         '''
 
+        photos = []
+        
         from .util import walk
 
         for filepath in walk(photo_dir):
-            self.add_image(filepath)
+            photos.append(self.add_image(filepath))
 
-    def add_image(self, filepath: pathlib.Path) -> str:
+        return photos
+
+
+    def add_image(self, filepath: pathlib.Path) -> Photo:
         '''
         Add an image to the database.
         Also generates any required information. 
 
         Throws IOError if filepath does not lead to an image.
-        Returns the id of the image
+        Returns the a Photo object
         '''
 
         try:
@@ -126,6 +131,16 @@ class Database(chromadb.Collection):
         raw_hash = perceptual_hash(image)
         hash = hash_to_str(raw_hash)
 
+        photo = Photo(
+            id=id,
+            title=filepath.name[:-4],
+            time_created=time_created,
+            time_last_modified=last_modified_time,
+            perceptual_hash=hash,
+            description=description,
+            source=str(filepath),
+            data=np.array(image.convert("RGB"))
+        )
         self.collection.add(
             ids=id,
             images=np.array(image.convert("RGB")),
@@ -164,7 +179,8 @@ class Database(chromadb.Collection):
             metadatas=source_ids,
         )
 
-        return id
+        image.close()
+        return photo
 
     def query_with_text(self, prompt: str, limit: int = 6) -> list[Photo]:
         """
@@ -181,8 +197,9 @@ class Database(chromadb.Collection):
             metadata = results["metadatas"][0][i]
             id = results["ids"][0][i]
             image_path = pathlib.Path(self.image_directory_path) / f"{id}.png"
-            image_data = Image.open(image_path)
-            photos[i] = Photo(id=id, **metadata, data=image_data)
+            with Image.open(image_path) as image_data:
+                photos[i] = Photo(id=id, **metadata, data=image_data)
+            
 
         return photos
 
@@ -283,14 +300,14 @@ class Database(chromadb.Collection):
         self.collection.delete(ids=ids)
 
         # remove from duplicate collection
-        hashes = [photo.perceptual_hash for photo in photos]
+        hashes = list(set([photo.perceptual_hash for photo in photos]))
         entries = self.phash_collection.get(hashes, include=["embeddings", "metadatas"])
         bins = entries["metadatas"]
 
         for i in range(len(bins)):
             for id in ids:
-                print(bins[i])
-                print(id)
+                # print(bins[i])
+                # print(id)
                 if id in bins[i]:
                     del bins[i][id]
                     bins[i]["count"] -= 1
