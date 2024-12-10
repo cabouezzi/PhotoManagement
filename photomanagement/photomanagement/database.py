@@ -109,6 +109,7 @@ class Database(chromadb.Collection):
         # file isn't an image
         except IOError as e:
             logging.exception(f"Exception when adding image @ {filepath}: {e}")
+            return
 
         # step 1: add to directory of images
         id = str(uuid.uuid4())
@@ -364,3 +365,12 @@ class Database(chromadb.Collection):
         if sorted:
             photos.sort(key=lambda photo: photo.time_created)
         return photos
+    
+    def update_photo(self, photo: Photo, description: str):
+        if not isinstance(description, str):
+            raise ValueError("photo description must be string")
+
+        self.collection.update(
+            ids=photo.id,
+            metadatas={"description": description},
+        )
