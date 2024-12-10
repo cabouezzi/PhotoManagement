@@ -200,7 +200,7 @@ class Database(chromadb.Collection):
                 id=entries["ids"][j],
                 **(entries["metadatas"][j]),
                 data=Image.open(
-                    pathlib.Path(self.image_directory_path) / f"{entries["ids"][j]}.png"
+                    pathlib.Path(self.image_directory_path) / f"{entries['ids'][j]}.png"
                 ),
             )
             for j in range(len(entries["ids"]))
@@ -228,7 +228,7 @@ class Database(chromadb.Collection):
                     **(entries["metadatas"][j]),
                     data=Image.open(
                         pathlib.Path(self.image_directory_path)
-                        / f"{entries["ids"][j]}.png"
+                        / f"{entries['ids'][j]}.png"
                     ),
                 )
                 for j in range(len(entries["ids"]))
