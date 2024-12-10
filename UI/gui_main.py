@@ -2,7 +2,6 @@ import dearpygui.dearpygui as dpg
 from gui_cv import choose_img_callback, cancel_img_callback
 from PIL import Image
 import glob
-import DearPyGui_ImageController as dpg_img
 from photomanagement import Database, Speech
 import pathlib
 
@@ -115,20 +114,19 @@ def find_identical(sender, app_data, user_data):
     p = user_data
     resulted_photos = db.scan_duplicates_for_photo(photo=p)
     with dpg.window(label="Results", width=500, height=500) as res:
-        with dpg.texture_registry():
-            for res_photo in resulted_photos:
-                im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
-                texture_tag = dpg.add_static_texture(
-                    width=res_photo.data.width,
-                    height=res_photo.data.height,
-                    default_value=im_1D,
-                )
-                img_tag = dpg.add_image_button(
-                    texture_tag,
-                    parent=res,
-                    callback=extra_fn,
-                    user_data=res_photo,
-                )
+        for res_photo in resulted_photos:
+            im_1D = img_to_1D_arr(res_photo.data.convert("RGBA"))
+            texture_tag = dpg.add_static_texture(
+                width=res_photo.data.width,
+                height=res_photo.data.height,
+                default_value=im_1D,
+            )
+            img_tag = dpg.add_image_button(
+                texture_tag,
+                parent=res,
+                callback=extra_fn,
+                user_data=res_photo,
+            )
 
 
 def extra_fn(sender, app_data, user_data):
@@ -201,13 +199,13 @@ def search_photo(sender, app_data):
 
 def choose_dir_callback(sender, app_data):
     dir_path = app_data["file_path_name"]
-    load_all_img(path=dir_path)
+    db.add_images_from_directory(dir_path)
+    load_img_chosen()
     # db = Database(dir_path)
     # print(app_data)
 
 
-def load_all_img(path):
-    db.add_images_from_directory(path)
+def load_img_chosen():
     photos = db.query_with_text("hi")
     with dpg.texture_registry():
         for photo in photos:
@@ -216,6 +214,7 @@ def load_all_img(path):
                 width=photo.data.width,
                 height=photo.data.height,
                 default_value=im_1D,
+                parent="main_texture_registry",
             )
             img_tag = dpg.add_image_button(
                 texture_tag,
@@ -223,15 +222,6 @@ def load_all_img(path):
                 callback=extra_fn,
                 user_data=photo,
             )
-            # with dpg.popup(img_tag):
-            #     dpg.add_button(label="Find Duplicates")
-            #     dpg.add_button(
-            #         label="Edit",
-            #         user_data=photo.data.filename,
-            #         callback=choose_img_callback,
-            #     )
-            #     dpg.add_button(label="Speak", user_data=photo)
-            #     dpg.add_button(label="Delete")
     dpg.set_item_callback("search_box", callback=search_photo)
 
 
@@ -314,7 +304,24 @@ def main():
                     label="Search", width=500, tag="search_box", on_enter=True
                 )
                 with dpg.group(tag="image_group"):
-                    pass
+                    with dpg.texture_registry(tag="main_texture_registry"):
+                        if pathlib.Path(home_dir).exists():
+                            photos = db.get_all_images()
+                            for photo in photos:
+                                im_1D = img_to_1D_arr(
+                                    photo.data.convert("RGBA")
+                                )
+                                texture_tag = dpg.add_static_texture(
+                                    width=photo.data.width,
+                                    height=photo.data.height,
+                                    default_value=im_1D,
+                                )
+                                dpg.add_image_button(
+                                    texture_tag,
+                                    callback=extra_fn,
+                                    user_data=photo,
+                                )
+
         with dpg.group(horizontal=True, tag="info_window_group"):
             dpg.add_child_window(
                 pos=(dpg.get_viewport_width() - 400, 30),
