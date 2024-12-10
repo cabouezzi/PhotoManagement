@@ -170,5 +170,9 @@ database/
 test-images/
 test-dbs/
 
+#Faulty UI
+photomanagement/UI/gui.py
+photomanagement/UI/edit.py
+
 # Mac
 **/.DS_Store
