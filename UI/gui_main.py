@@ -150,25 +150,30 @@ def search_photo(sender, app_data):
 def extra_fn(sender, app_data, user_data):
     if len(dpg.get_item_children("info_window")) > 0:
         dpg.delete_item("info_window", children_only=True)
+        dpg.delete_item("info_window_text_reg", children_only=True)
     p = user_data["photo"]
-    with dpg.texture_registry():
-        im_1D = img_to_1D_arr(p.data.convert("RGBA"))
-        texture_tag = dpg.add_static_texture(
-            width=p.data.width,
-            height=p.data.height,
-            default_value=im_1D,
-        )
-        img_tag = dpg.add_image(texture_tag, parent="info_window")
-        with dpg.group(parent="info_window"):
-            dpg.add_text(f"Id: {p.id}")
-            dpg.add_text(f"Title: {p.title}")
-            dpg.add_text(f"Time Created: {p.time_created}")
-            dpg.add_text(f"Time Last Modified: {p.time_last_modified}")
+    im_1D = img_to_1D_arr(p.data.convert("RGBA"))
+    texture_tag = dpg.add_static_texture(
+        width=p.data.width,
+        height=p.data.height,
+        default_value=im_1D,
+        parent="info_window_text_reg",
+    )
+    img_tag = dpg.add_image(texture_tag, parent="info_window")
+    with dpg.group(parent="info_window"):
+        dpg.add_text(f"Id: {p.id}")
+        dpg.add_text(f"Title: {p.title}")
+        dpg.add_text(f"Time Created: {p.time_created}")
+        dpg.add_text(f"Time Last Modified: {p.time_last_modified}")
     with dpg.group(parent="info_window", horizontal=True):
         dpg.add_separator()
         dpg.add_button(
             label="Edit",
-            user_data=p.data.filename,
+            user_data={
+                "path_to_save": p.data.filename,
+                "id": p.id,
+                "tag_to_modify": img_tag,
+            },
             callback=choose_img_callback,
             tag="edit",
         )
@@ -209,6 +214,7 @@ def load_img_chosen():
                 continue
             im_1D = img_to_1D_arr(photo.data.convert("RGBA"))
             texture_tag = dpg.add_static_texture(
+                tag=photo.id + "_texture",
                 width=photo.data.width,
                 height=photo.data.height,
                 default_value=im_1D,
@@ -316,7 +322,7 @@ def main():
                     label="Open Photo Directory ...",
                     callback=lambda: dpg.show_item("dir_dialog"),
                 )
-            dpg.add_button(label="Find Duplicates", tag="dup_btn")
+            # dpg.add_button(label="Find Duplicates", tag="dup_btn")
         with dpg.group(horizontal=True):
             with dpg.child_window(
                 pos=(10, 30), tag="all_img_window", horizontal_scrollbar=True
@@ -336,6 +342,7 @@ def main():
                                     width=photo.data.width,
                                     height=photo.data.height,
                                     default_value=im_1D,
+                                    tag=photo.id + "_texture",
                                 )
                                 dpg.add_image_button(
                                     texture_tag,
@@ -354,6 +361,7 @@ def main():
                 width=400,
                 horizontal_scrollbar=True,
             )
+            dpg.add_texture_registry(tag="info_window_text_reg", show=True)
     dpg.set_primary_window("main_window", True)
     dpg.bind_item_handler_registry("main_window", "info_window_handler")
     dpg.set_global_font_scale(1.5)

@@ -1,6 +1,8 @@
 import dearpygui.dearpygui as dpg
 import cv2
 import numpy as np
+from PIL import Image
+from gui_main import extra_fn
 
 # from edit_type import TypeEdit
 
@@ -59,6 +61,28 @@ class HandleImageDPG:
         auxImg = auxImg.ravel()
         auxImg = np.true_divide(auxImg, 255.0)
         return auxImg
+
+    def get_result(self):
+        return self.result
+
+    # def save_img(self, sender, app_data, user_data):
+    #     cv2.imwrite(user_data["path"], self.result)
+    #     dpg.delete_item(user_data["photo_id"] + "_texture")
+    #     dpg.delete_item(user_data["photo_id"])
+    #     dpg.add_static_texture(
+    #         width=self.result.shape[1],
+    #         height=self.result.shape[0],
+    #         default_value=self.texture_to_data(self.result),
+    #         tag=user_data["photo_id"] + "_texture",
+    #         parent="main_texture_registry",
+    #     )
+    #     dpg.add_image_button(
+    #         user_data["photo_id"] + "_texture",
+    #         parent="image_group",
+    #         tag=user_data["photo_id"],
+    #         callback=extra_fn,
+    #         user_data={"photo": Image.open(user_data["path"])},
+    #     )
 
     # def get_last_active(self):
     #     for item in self.last_active:

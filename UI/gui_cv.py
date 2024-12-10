@@ -1,12 +1,33 @@
 import dearpygui.dearpygui as dpg
 from edit_cv import HandleImageDPG
+from PIL import Image
+import cv2
 
 """
 File Handler
 """
 
 
-def load_image(path):
+def save_im(obj, path, photo_id, result):
+    cv2.imwrite(path, result)
+    dpg.delete_item(photo_id + "_texture")
+    dpg.delete_item(photo_id)
+    dpg.add_static_texture(
+        width=result.shape[1],
+        height=result.shape[0],
+        default_value=obj.texture_to_data(result),
+        tag=photo_id + "_texture",
+        parent="main_texture_registry",
+    )
+    dpg.add_image_button(
+        photo_id + "_texture",
+        parent="image_group",
+        tag=photo_id,
+        user_data={"photo": Image.open(path)},
+    )
+
+
+def load_image(path, photo_id, tag_to_modify):
     try:
         # when there is path
         if dpg.get_value("img_path") != "Path ":
@@ -33,6 +54,7 @@ def load_image(path):
             )
         dpg.set_value("img_path", value=f"Path {path}")
         dpg.set_item_callback("apply_btn", handle_img_obj.update_texture)
+        result = handle_img_obj.get_result()
         # create_widget_group(handle_img_obj)
         return handle_img_obj
     except ValueError:
@@ -44,13 +66,15 @@ def choose_img_callback(sender, app_data, user_data):
     Load image, adjust image path text, load widget groups
     """
     print(app_data)
-    path = user_data
+    path = user_data["path_to_save"]
+    photo_id = user_data["id"]
+    tag_to_modify = user_data["tag_to_modify"]
     print(user_data)
     if dpg.does_item_exist("photo_window"):
         if not dpg.get_item_state("photo_window")["toggled_open"]:
             cancel_img_callback()
     edit_main()
-    load_image(path)
+    load_image(path, photo_id, tag_to_modify)
 
 
 def cancel_img_callback():
@@ -156,7 +180,7 @@ def create_widget_group():
         dpg.add_button(
             label="Apply Changes", user_data="texture_tag", tag="apply_btn"
         )
-        dpg.add_button(label="Save Changes")
+        # dpg.add_button(label="Save Changes", tag="save")
 
 
 """
