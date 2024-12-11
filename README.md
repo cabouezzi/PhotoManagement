@@ -4,13 +4,13 @@
 An application that provides an API for storing photos and interacting with them. Users will be able to add/delete photos from the library. There will be an UI displaying a selected photo and options to edit the photo. The library generates a text description of a selected image and uses a text to speech engine to play audio.
 
 Features:
-- Upload photo(s) to library by inputting a directory containing jpg and png file types
-- UI displays image and connects other features
-- Edit photo’s brightness, hue, and saturation with input on UI
-- Sort and return duplicate/similar photos (button to call function)
-- Search and return photos matching text query (button to call function)
-- Generate and play audio for text description (button to call function)
-- Delete photos from client’s local database (will not delete files from client’s file directories)
+1. **Upload photo(s) to library by inputting a directory containing jpg and png file types**
+   - Delete photos from client’s local database (will not delete files from client’s file directories)
+   - UI displays image and connects other features
+2. **Edit photo’s brightness, hue, and saturation with input on UI**
+3. **Sort and return duplicate/similar photos** (button to call function)
+4. **Search and return photos matching text query** (button to call function)
+5. **Generate and play audio for text description** (button to call function)
 
 We also envision the package to be used without the GUI, as initially designed and demonstrated in an included tutorial called `examples.ipynb`.
 
