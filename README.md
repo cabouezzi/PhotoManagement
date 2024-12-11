@@ -35,6 +35,12 @@ pwd
 pip install ./photomanagement
 ```
 
+Now, you should be able to import the package as follows
+```python
+import photomanagement
+# db = photomanagement.Database()
+```
+
 #### Testing
 To run tests, cd into the first `photomanagement` subdirectory and run the command `python -m unittest`. 
 
