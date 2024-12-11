@@ -51,7 +51,7 @@ The app uses Ollama for the image-to-audio feature. Follow instructions to downl
 run ollama on your computer as an application or through command
 ```ollama run ollama pull llama3.2-vision:11b```
 
-> NOTE: If your computer cannot run the `llama3.2-vision:11b` model, you can try any other multimodal model such as `llava-llama3` model
+> NOTE: If your computer cannot run the `llama3.2-vision:11b` model, you can try any other multimodal model such as `llava-llama3` model. The easiest way to do this is by pulling the new model, and changing the default name in `chat.py`
 
 **Embeddings Model:**
 The multimodal embeddings model used with Chroma DB is an open-source implementation of OpenAI’s CLIP model. It can be downloaded from Huggingface (https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K) but will automatically be downloaded when the app starts, stored in `{HOME}/.cache/huggingface/hub`.
