@@ -41,7 +41,10 @@ import photomanagement
 # db = photomanagement.Database()
 ```
 
-#### Testing
+### Running the GUI
+After installing the package, you can run the GUI with `python UI/gui_main.py`
+
+### Testing
 To run tests, cd into the first `photomanagement` subdirectory and run the command `python -m unittest`. 
 
 **Download Ollama for your OS:**
