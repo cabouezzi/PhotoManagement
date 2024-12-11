@@ -4,7 +4,7 @@
 An application that provides an API for storing photos and interacting with them. Users will be able to add/delete photos from the library. There will be an UI displaying a selected photo and options to edit the photo. The library generates a text description of a selected image and uses a text to speech engine to play audio.
 
 Features:
-- Upload photo(s) to library by inputting a path to a jpg or png file or a directory containing jpg and png file types
+- Upload photo(s) to library by inputting a directory containing jpg and png file types
 - UI displays image and connects other features
 - Edit photo’s brightness, hue, and saturation with input on UI
 - Sort and return duplicate/similar photos (button to call function)
@@ -12,31 +12,35 @@ Features:
 - Generate and play audio for text description (button to call function)
 - Delete photos from client’s local database (will not delete files from client’s file directories)
 
+We also envision the package to be used without the GUI, as initially designed and demonstrated in an included tutorial called `examples.ipynb`.
+
+Code documentation can be opened in the browser from the `docs/index.html`.
+
 Link to demo [here](https://drive.google.com/file/d/1hcS5-gKFppm3sKZi9WeGxWMw2y1--nUi/view?usp=share_link)
 
 ## 2. Installation Instructions
 
-**Install poetry:**
+First, create a Python virtual environment with Python version >=3.10 but <3.13. For example,
+```python3.12 -m venv venv```
+Make sure to activate the environment before continuing. We assume it is activated from here on.
 
-```pip install poetry```
-
-
-**Install dependencies with poetry:**
-
-```cd photomanagement```
-
-```poetry lock```
-
-```poetry install```
-
-Alternatively, you can install `photomanagement` as a package straight from the git repository, which will install dependencies as well.
+You can install `photomanagement` as a package straight from the git repository, which will install dependencies as well.
 
 ```pip install git+https://github.com/cabouezzi/PhotoManagement.git/#subdirectory=photomanagement```
 
+You can also do a relative pip install, for example on Mac:
+```
+pwd
+> /•••/PhotoManagement
+pip install ./photomanagement
+```
+
+#### Testing
+To run tests, cd into the first `photomanagement` subdirectory and run the command `python -m unittest`. 
 
 **Download Ollama for your OS:**
 
-Follow instructions to download and run Ollama at https://ollama.com/download and pull the vision LLM being used with `ollama pull llama3.2-vision:11b`.
+The app uses Ollama for the image-to-audio feature. Follow instructions to download and run Ollama at https://ollama.com/download and pull the vision LLM being used with `ollama pull llama3.2-vision:11b`.
 
 run ollama on your computer as an application or through command
 ```ollama run ollama pull llama3.2-vision:11b```
@@ -48,17 +52,12 @@ The multimodal embeddings model used with Chroma DB is an open-source implementa
 
 ## 3. Configuration
 
-Running the unit tests will skip over the tests involving the LLM’s due to high latency. To call the tests, instead of `python -m unittest`, run `CHAT=true python -m unittest`.
+Running the unit tests will skip over the tests involving the LLM’s due to high latency. To call the tests that use LLM's, instead of `python -m unittest`, run `CHAT=true python -m unittest`.
 
-**NOTE:**
-
-If your MacBook is using an Intel core processor, the newest pytorch version is not compatible with numpy 2.x and the program will not run. To fix this error you can
-
-Install a 1.x version of numpy:
-
-```poetry uninstall numpy```
-
-```poetry install numpy==1.24.1```
+> NOTE: If your MacBook is using an Intel core processor, the newest pytorch version is not compatible with numpy 2.x and the program will not run. To fix this error you can
+> Install a 1.x version of numpy:
+> ```poetry uninstall numpy```
+> ```poetry install numpy==1.24.1```
 
 
 ## 4. Database Documentation
@@ -77,7 +76,7 @@ We chose to use [ChromaDB](https://www.trychroma.com/) instead. This database in
 
 ## 5. AI models
 
-We use the [Ollama](https://ollama.com/) LLM to generate an image description by communicating with the LLM through backend implementation. Ollama runs in the background of a computer and accepts an input of an array of strings as messages. We chose Ollama because it is from a reputable open source media, Meta Open Source: AI.
+We use the `llama3.2-vision:11b` LLM uploaded on [Ollama](https://ollama.com/) to generate an image description. We attempted to find the best tradeoff between size of the model and performance under the requirement of multimodality. Ollama runs in the background of a computer and accepts an input of an array of strings as messages. We chose Ollama because it is from a reputable open source media, Meta Open Source: AI.
 
 ## 6. Contribution
 
