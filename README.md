@@ -87,14 +87,4 @@ We chose to use [ChromaDB](https://www.trychroma.com/) instead. This database in
 
 We use the `llama3.2-vision:11b` LLM uploaded on [Ollama](https://ollama.com/) to generate an image description. We attempted to find the best tradeoff between size of the model and performance under the requirement of multimodality. Ollama runs in the background of a computer and accepts an input of an array of strings as messages. We chose Ollama because it is from a reputable open source media, Meta Open Source: AI.
 
-## 6. Contribution
-
-|---|---|
-|---|---|
-| Chaniel Abou-Ezzi | Search for photos using text description feature;  Code cross-checking;   Documentation;  Presentation; preparation  |
-| Anh Le | Edit photos feature; UI development;  Code cross-checking; Documentation; Presentation; preparation |
-| Anh Trinh | Duplicate detection feature; Code cross-checking;   Documentation;  Presentation; preparation;  |
-| Joseph Schwab | Database handle; Code cross-checking;   Documentation;  Presentation; preparation |
-| Kailin Luo | Generate and play audio description for photos feature; Code cross-checking;   Documentation;  Presentation; preparation  |
-
 
